@@ -1,7 +1,9 @@
 node_modules/
 .next/
 dist/
-coverage/
+/coverage/
+/apps/*/coverage/
+/packages/*/coverage/
 .data/
 *.log
 .env
