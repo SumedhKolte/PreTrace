@@ -441,3 +441,4 @@ Free-tier topology: **Vercel** (Next.js) → `/api/*` rewrite → **Render** (Ex
 - **Lexical grounding over LLM self-verification:** it's cheaper, deterministic and explainable; asking a model to verify itself would add calls and more non-determinism.
 - **Polling over SSE:** simpler and more robust behind proxies and serverless rewrites; at 1.2 s intervals the timeline still feels live.
 - **Deterministic weakness scoring:** it's transparent (the UI shows the formula) and stable. The model would be inconsistent and unexplainable here.
+# PreTrace
