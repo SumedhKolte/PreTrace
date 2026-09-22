@@ -115,7 +115,7 @@ export function toWorkspace(k: KitRecord): KitWorkspace {
     flashcards: k.flashcards ?? [],
     schedule: k.schedule ?? { days_available: k.input.days, days: [], generatedAt: "" },
     coverage: k.coverage ?? { uncovered_requirement_ids: [], passes: 0, log: [] },
-    research: k.research ?? { sources: [], signals: [], limitations: [] },
+    research: { sources: [], signals: [], limitations: [], ...k.research, techStack: k.research?.techStack ?? [] },
     generation: k.generation ?? { warnings: [] },
     briefRevisions: k.briefRevisions ?? [],
     error: k.error?.code ? { code: k.error.code, message: k.error.message ?? "" } : undefined,

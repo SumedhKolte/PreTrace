@@ -1,7 +1,7 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import type { ZodType } from "zod";
 import { resolveSession, SESSION_COOKIE, type AuthUser } from "../auth/sessions";
-import { getConfig } from "../config/env";
+import { frontendOrigins, getConfig } from "../config/env";
 import { AppError, isAppError } from "../lib/errors";
 import { logger } from "../lib/logger";
 
@@ -39,7 +39,7 @@ export const originCheck: RequestHandler = (req, _res, next) => {
   const origin = req.get("origin");
   if (!origin) return next();
   const cfg = getConfig();
-  const allowed = new Set([cfg.FRONTEND_URL, cfg.BACKEND_URL].map((u) => new URL(u).origin));
+  const allowed = new Set([...frontendOrigins(cfg), new URL(cfg.BACKEND_URL).origin]);
   if (!allowed.has(origin)) return next(new AppError("FORBIDDEN", "Cross-origin request rejected."));
   next();
 };

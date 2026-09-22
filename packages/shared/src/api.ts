@@ -115,3 +115,14 @@ export const CompleteRepairSchema = z.object({ confidence: z.number().int().min(
 export const UpdateKitSchema = z.object({
   days: z.number().int().min(1).max(MAX_DAYS),
 });
+
+export const CritiqueRequestSchema = z.discriminatedUnion("itemType", [
+  z.object({ itemType: z.literal("question"), itemId: z.string().min(1), answer: z.string().trim().min(15, "Write or dictate a little more before asking for a critique").max(6000) }),
+  z.object({
+    itemType: z.literal("followup"),
+    prompt: z.string().trim().min(5).max(1000),
+    answer_outline: z.string().max(4000).default(""),
+    requirementIds: z.array(z.string()).max(10).default([]),
+    answer: z.string().trim().min(15, "Write or dictate a little more before asking for a critique").max(6000),
+  }),
+]);

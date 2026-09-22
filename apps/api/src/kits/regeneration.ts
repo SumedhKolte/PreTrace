@@ -13,6 +13,7 @@ import {
 import { AppError } from "../lib/errors";
 import type { ProgressReporter } from "../pipeline/interviewPrepService";
 import type { Services } from "../services";
+import { markJdOverlap } from "../research/techStack";
 import { recomputeCoverage } from "./editing";
 import { findOwnedKit, mutateKit, type KitRecord } from "./repository";
 import { deletedPrompts, materializeFlashcards, mergeCategoryQuestions, mergeFlashcards, reschedule } from "./state";
@@ -44,6 +45,7 @@ function ctxFromKit(kit: KitRecord): QuestionContext {
     requirements: kit.role.requirements,
     signals: kit.research.signals,
     hiring: kit.companyBrief.hiring_process,
+    techStack: kit.research.techStack ?? [],
   };
 }
 
@@ -85,7 +87,7 @@ export async function runRegeneration(
         ].slice(0, 10);
       }
       k.companyBrief = { ...brief, version: (k.companyBrief?.version ?? 0) + 1 };
-      k.research = { sources: research.sources, signals: research.signals, limitations: research.limitations };
+      k.research = { sources: research.sources, signals: research.signals, limitations: research.limitations, techStack: markJdOverlap(research.techStack ?? [], k.input.jd) };
       if (k.source) k.source = { ...k.source, researched_at: research.researchedAt, pages_used: research.pagesUsed };
       // Questions, flashcards and schedule are intentionally untouched.
     });

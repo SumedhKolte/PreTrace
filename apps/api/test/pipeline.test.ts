@@ -63,6 +63,12 @@ describe("InterviewPrepService end-to-end (scripted LLM, real crawler)", () => {
     // Evidence only cites real signals (S404 dropped)
     expect(out.parts.questions.every((q) => q.evidence.signals.every((s) => s.source_url.startsWith("http")))).toBe(true);
 
+    // Company DNA: technologies from the company's own pages, JD overlap marked
+    const dna = out.parts.research.techStack;
+    expect(dna.map((t) => t.name)).toEqual(expect.arrayContaining(["TypeScript", "Node.js", "PostgreSQL", "Kafka", "Kubernetes"]));
+    expect(dna.find((t) => t.name === "PostgreSQL")?.inJd).toBe(true);
+    expect(dna.some((t) => t.name === "Vitess")).toBe(false);
+
     // Deterministic schedule
     expect(kit.schedule.days).toHaveLength(5);
     expect(kit.flashcards.length).toBeGreaterThan(0);

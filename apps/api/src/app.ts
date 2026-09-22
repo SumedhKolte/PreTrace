@@ -5,7 +5,7 @@ import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import mongoose from "mongoose";
 import { authRouter } from "./auth/routes";
-import { getConfig } from "./config/env";
+import { frontendOrigins, getConfig } from "./config/env";
 import { errorHandler, notFound, originCheck, requireAuth } from "./http/middleware";
 import type { JobRunner } from "./jobs/jobRunner";
 import { kitsRouter } from "./kits/routes";
@@ -18,12 +18,12 @@ export function createApp(services: Services, runner: JobRunner) {
   const cfg = getConfig();
   const app = express();
   app.disable("x-powered-by");
-  if (cfg.TRUST_PROXY) app.set("trust proxy", 1);
+  if (cfg.TRUST_PROXY > 0) app.set("trust proxy", cfg.TRUST_PROXY);
 
   app.use(helmet());
   app.use(
     cors({
-      origin: [new URL(cfg.FRONTEND_URL).origin],
+      origin: frontendOrigins(cfg),
       credentials: true,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     }),

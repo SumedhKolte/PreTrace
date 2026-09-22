@@ -1,6 +1,8 @@
 import { Router } from "express";
-import { CompleteRepairSchema, PracticeEventSchema, StartPracticeSchema, StartRepairSchema } from "@preptrace/shared";
+import rateLimit from "express-rate-limit";
+import { CompleteRepairSchema, CritiqueRequestSchema, PracticeEventSchema, StartPracticeSchema, StartRepairSchema } from "@preptrace/shared";
 import { ah, authedUser, parseBody } from "../http/middleware";
+import { AppError } from "../lib/errors";
 import type { PracticeService } from "./practiceService";
 
 /** Mounted under /api/kits/:id — all handlers are ownership-scoped via findOwnedKit. */
@@ -60,6 +62,23 @@ export function practiceRouter(practice: PracticeService) {
     "/practice/sessions/:sessionId/complete",
     ah(async (req, res) => {
       res.json({ session: await practice.completeSession(kitId(req.params), authedUser(req).id, String(req.params.sessionId)) });
+    }),
+  );
+
+  // LLM-backed and user-triggered: limited per user to protect the free-tier quota.
+  const critiqueLimiter = rateLimit({
+    windowMs: 60 * 60_000,
+    limit: process.env.NODE_ENV === "test" ? 1000 : 40,
+    keyGenerator: (req) => req.user?.id ?? "anon",
+    handler: (_req, _res, next) => next(new AppError("RATE_LIMITED", "You've requested a lot of critiques this hour. Try again shortly.")),
+  });
+
+  r.post(
+    "/practice/critique",
+    critiqueLimiter,
+    ah(async (req, res) => {
+      const body = parseBody(CritiqueRequestSchema, req.body);
+      res.json({ critique: await practice.critique(kitId(req.params), authedUser(req).id, body) });
     }),
   );
 

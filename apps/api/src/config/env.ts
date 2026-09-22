@@ -36,7 +36,14 @@ const EnvSchema = z.object({
   FRONTEND_URL: z.string().default("http://localhost:3000"),
   BACKEND_URL: z.string().default("http://localhost:4000"),
   COOKIE_SAMESITE: z.enum(["lax", "strict", "none"]).default("lax"),
-  TRUST_PROXY: bool.default(false),
+  /**
+   * Reverse-proxy hops in front of the API: false/0 (none), true/1 (e.g. Render only),
+   * 2 (browser → Vercel rewrite → Render). Needed so rate limits see real client IPs.
+   */
+  TRUST_PROXY: z
+    .union([z.boolean(), z.string()])
+    .transform((v) => (typeof v === "boolean" ? Number(v) : ["true", "yes", "on"].includes(v.toLowerCase()) ? 1 : Math.max(0, Number.parseInt(v, 10) || 0)))
+    .default(0),
 
   LLM_PROVIDER: z.enum(["gemini", "groq", "openrouter", "openai", "custom"]).default("gemini"),
   LLM_API_KEY: z.string().optional(),
@@ -71,6 +78,14 @@ const EnvSchema = z.object({
 });
 
 export type AppConfig = z.infer<typeof EnvSchema>;
+
+/** FRONTEND_URL may list several origins (comma-separated), e.g. production + preview domains. */
+export function frontendOrigins(cfg: AppConfig): string[] {
+  return cfg.FRONTEND_URL.split(",")
+    .map((u) => u.trim())
+    .filter(Boolean)
+    .map((u) => new URL(u).origin);
+}
 
 let cached: AppConfig | null = null;
 

@@ -283,9 +283,32 @@ describe("kits: generation, isolation, editing, regeneration", () => {
     expect(rejected.status).toBe(404);
   });
 
+  it("answer critique: validated, grounded in the kit's question, isolated per user", async () => {
+    const k = (await owner.get(`/api/kits/${kit.id}`)).body.kit as KitWorkspace;
+    const q = k.questions.find((x) => !x.meta.deleted)!;
+    const tooShort = await owner.post(`/api/kits/${kit.id}/practice/critique`).send({ itemType: "question", itemId: q.id, answer: "idk" });
+    expect(tooShort.status).toBe(400);
+    const res = await owner.post(`/api/kits/${kit.id}/practice/critique`).send({ itemType: "question", itemId: q.id, answer: "I would use idempotency keys stored with a unique constraint and replay the original response." });
+    expect(res.status).toBe(200);
+    expect(res.body.critique.verdict).toMatch(/strong|solid|developing|needs_work/);
+    expect(res.body.critique.coveredPoints.every((i: number) => i < res.body.critique.outlinePoints.length)).toBe(true);
+    const missing = await owner.post(`/api/kits/${kit.id}/practice/critique`).send({ itemType: "question", itemId: "q9999", answer: "a long enough answer for validation" });
+    expect(missing.status).toBe(404);
+    const stranger = await signup("stranger@example.com");
+    expect((await stranger.post(`/api/kits/${kit.id}/practice/critique`).send({ itemType: "question", itemId: q.id, answer: "a long enough answer for validation" })).status).toBe(404);
+  });
+
   it("deleting a kit removes it for the owner", async () => {
     const other = await createKit(owner, `${JD}\n- Experience with Redis`);
     expect((await owner.delete(`/api/kits/${other.id}`)).status).toBe(200);
     expect((await owner.get(`/api/kits/${other.id}`)).status).toBe(404);
+  });
+});
+
+describe("production configuration", () => {
+  it("accepts multiple frontend origins and proxy hop counts", async () => {
+    const { frontendOrigins } = await import("../src/config/env");
+    const cfg = { FRONTEND_URL: "https://preptrace.vercel.app, https://preptrace-git-main.vercel.app/" } as Parameters<typeof frontendOrigins>[0];
+    expect(frontendOrigins(cfg)).toEqual(["https://preptrace.vercel.app", "https://preptrace-git-main.vercel.app"]);
   });
 });

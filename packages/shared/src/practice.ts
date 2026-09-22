@@ -87,3 +87,24 @@ export const CONFIDENCE_LABELS: Record<number, string> = {
   4: "Confident",
   5: "Very confident",
 };
+
+export type CritiqueVerdict = "strong" | "solid" | "developing" | "needs_work";
+
+/** AI feedback on a drafted answer. Advisory only — it never changes readiness scores. */
+export interface AnswerCritique {
+  verdict: CritiqueVerdict;
+  /** Rubric points (from the answer outline) and which of them the answer addressed. */
+  outlinePoints: string[];
+  coveredPoints: number[];
+  strengths: string[];
+  gaps: string[];
+  staffPhrasing: string;
+  followUp: string;
+}
+
+export const VERDICT_LABELS: Record<CritiqueVerdict, string> = {
+  strong: "Strong answer",
+  solid: "Solid — a few gaps",
+  developing: "Developing",
+  needs_work: "Needs work",
+};

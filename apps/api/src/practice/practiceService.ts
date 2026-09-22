@@ -7,6 +7,7 @@ import { AppError } from "../lib/errors";
 import { logger } from "../lib/logger";
 import type { LlmClient } from "../llm/client";
 import { system, trusted, untrusted } from "../llm/prompt";
+import { critiqueAnswer } from "./critique";
 import { buildSessionItems, computeReadiness, itemConfidence, prioritizeItems } from "./weakness";
 
 type EventRow = { itemId: string; itemType: "question" | "flashcard"; confidence: number; createdAt: Date; kitId: Types.ObjectId };
@@ -149,6 +150,40 @@ export class PracticeService {
       sessions: sessions.map(toSessionDTO),
       events: events.map((e) => ({ itemId: e.itemId, itemType: e.itemType, confidence: e.confidence, mode: e.mode, at: new Date(e.createdAt as Date).toISOString() })),
     };
+  }
+
+  // ---- Answer critique (advisory) ---------------------------------------------
+
+  async critique(
+    kitId: string,
+    userId: string,
+    req:
+      | { itemType: "question"; itemId: string; answer: string }
+      | { itemType: "followup"; prompt: string; answer_outline: string; requirementIds: string[]; answer: string },
+  ) {
+    const kit = await findOwnedKit(kitId, userId);
+    if (!kit.role || !kit.companyBrief) throw new AppError("INVALID_INPUT", "This kit has not finished generating yet.");
+    if (!this.llm.available) throw new AppError("LLM_NOT_CONFIGURED", "Answer critique needs an AI provider. Set LLM_API_KEY.");
+    let question: string;
+    let outline: string;
+    let reqIds: string[];
+    if (req.itemType === "question") {
+      const q = kit.questions.find((x) => x.id === req.itemId && !x.meta.deleted);
+      if (!q) throw new AppError("NOT_FOUND", "Question not found in this kit.");
+      [question, outline, reqIds] = [q.prompt, q.answer_outline, q.requirement_ids];
+    } else {
+      [question, outline, reqIds] = [req.prompt, req.answer_outline, req.requirementIds];
+    }
+    return critiqueAnswer(this.llm.scope(), {
+      question,
+      outline,
+      answer: req.answer,
+      requirements: kit.role.requirements.filter((r) => reqIds.includes(r.id)),
+      seniority: kit.role.seniority,
+      companyName: kit.source?.company ?? "",
+      techStack: kit.research?.techStack ?? [],
+      hiring: kit.companyBrief.hiring_process,
+    });
   }
 
   // ---- Repair sessions (Weak-Spot Coach) ------------------------------------

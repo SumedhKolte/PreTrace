@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   CATEGORY_LABELS,
   type Difficulty,
+  type CompanyTech,
   type HiringProcess,
   type QuestionCategory,
   type QuestionEvidence,
@@ -21,6 +22,8 @@ export interface QuestionContext {
   requirements: WorkspaceRequirement[];
   signals: ResearchSignal[];
   hiring: HiringProcess;
+  /** Verified company technologies (Company DNA). */
+  techStack?: CompanyTech[];
 }
 
 export interface GeneratedQuestion {
@@ -173,6 +176,17 @@ export function postProcessQuestions(
   return out;
 }
 
+function techBlock(ctx: QuestionContext): string {
+  const techs = ctx.techStack ?? [];
+  if (techs.length === 0) return "";
+  const line = techs
+    .slice(0, 16)
+    .map((t) => `${t.name}${t.inJd ? " (also in JD)" : ""}`)
+    .join(", ");
+  // Names come from our own dictionary (never free text from pages), so this block is trusted.
+  return trusted("company_technology", `Technologies the company's own website mentions: ${line}`);
+}
+
 function contextBlocks(ctx: QuestionContext) {
   return [
     trusted(
@@ -183,7 +197,8 @@ function contextBlocks(ctx: QuestionContext) {
     ),
     untrusted("company_summary", ctx.companySummary || "(no company summary)", 1500),
     untrusted("responsibilities", ctx.responsibilities.map((r) => `- ${r}`).join("\n") || "(none listed)", 2500),
-  ];
+    techBlock(ctx),
+  ].filter(Boolean);
 }
 
 export async function generateCategoryQuestions(
@@ -206,6 +221,7 @@ export async function generateCategoryQuestions(
 ${CATEGORY_FOCUS[category]}
 - Every question MUST list the requirement_ids it assesses, chosen only from the provided requirement list. Prioritise MUST requirements so each one is covered.
 - Only reference research signals by their IDs; never invent company facts, products or interview rounds.
+- Company DNA: when a "company_technology" list is provided and relevant to this category, set scenarios in that verified stack (e.g. "design idempotent payouts on PostgreSQL and Kafka"). Never mention a company technology that is not in the list.
 - Do not repeat or closely paraphrase any question in the "existing_questions" list.
 - ${difficultyGuide(ctx.seniority)}`,
       SCHEMA,

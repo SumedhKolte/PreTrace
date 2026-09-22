@@ -66,6 +66,18 @@ export interface ResearchSignal {
   source_url: string;
 }
 
+export type TechCategory = "language" | "framework" | "datastore" | "messaging" | "infrastructure" | "practice";
+
+/** A technology the company mentions on its own pages (deterministic dictionary match). */
+export interface CompanyTech {
+  name: string;
+  category: TechCategory;
+  mentions: number;
+  sources: string[];
+  /** Also mentioned in this kit's job description. */
+  inJd: boolean;
+}
+
 export interface EvidenceSignal {
   kind: "company" | "hiring" | "public";
   text: string;
@@ -199,6 +211,7 @@ export interface KitWorkspace {
     sources: ResearchSource[];
     signals: ResearchSignal[];
     limitations: string[];
+    techStack: CompanyTech[];
   };
   generation: {
     jobId?: string;

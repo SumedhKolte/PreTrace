@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { normalizeUrlForKey, type HiringProcess, type ResearchSignal, type ResearchSource, type SourceType } from "@preptrace/shared";
+import { normalizeUrlForKey, type CompanyTech, type HiringProcess, type ResearchSignal, type ResearchSource, type SourceType } from "@preptrace/shared";
 import type { Llm } from "../llm/client";
 import { system, untrusted } from "../llm/prompt";
 import { logger } from "../lib/logger";
@@ -11,6 +11,7 @@ import type { RobotsCache } from "./net/robots";
 import type { SafeFetcher } from "./net/safeFetch";
 import type { SearchProvider, SearchResult } from "./search/searchProvider";
 import type { ResearchCache } from "./researchCache";
+import { detectTechStack } from "./techStack";
 
 export interface ResearchBundle {
   companyUrl: string;
@@ -24,6 +25,8 @@ export interface ResearchBundle {
   hiring: HiringProcess;
   limitations: string[];
   robotsBlocked: boolean;
+  /** Technologies the company's own pages mention (deterministic dictionary match). */
+  techStack: CompanyTech[];
   /** Condensed page text kept for later brief regeneration (bounded). */
   pageDigests: { url: string; title: string; category: LinkCategory; excerpt: string }[];
 }
@@ -246,6 +249,7 @@ export class ResearchService {
       hiring,
       limitations: [...new Set(limitations)],
       robotsBlocked: crawl.robotsBlockedHomepage,
+      techStack: detectTechStack(allPages),
       pageDigests: allPages.slice(0, 8).map((p) => ({ url: p.url, title: p.title, category: p.category, excerpt: p.text.slice(0, 1500) })),
     };
     if (this.deps.cache) await this.deps.cache.set(key, bundle, this.deps.cacheTtlMs).catch(() => {});

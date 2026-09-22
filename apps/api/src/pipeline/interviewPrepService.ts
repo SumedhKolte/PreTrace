@@ -27,6 +27,7 @@ import { logger } from "../lib/logger";
 import type { LlmClient } from "../llm/client";
 import type { ResearchBundle, ResearchService } from "../research/researchService";
 import { buildSchedule } from "../schedule/scheduler";
+import { markJdOverlap } from "../research/techStack";
 import { validateCanonicalKit } from "../validation/kitValidator";
 
 export interface PipelineInput {
@@ -109,6 +110,7 @@ export class InterviewPrepService {
     // ---- Stages 2–5: research ----------------------------------------------------
     const research = await this.deps.research.research(input.companyUrl, jd.company, (stage, status, detail) => report(stage, status, detail), { llm });
     const companyName = jd.company ?? research.companyName;
+    const techStack = markJdOverlap(research.techStack ?? [], input.jd);
 
     // ---- Stage 6: company brief --------------------------------------------------
     report("company_brief", "running", `Summarising verified facts about ${companyName}`);
@@ -132,6 +134,7 @@ export class InterviewPrepService {
       requirements: jd.requirements,
       signals: research.signals,
       hiring: research.hiring,
+      techStack,
     };
     const sd = systemDesignJustification(ctx);
     const categories: QuestionCategory[] = ["technical", "behavioural", ...(sd.justified ? (["system_design"] as const) : []), "company_fit"];
@@ -219,7 +222,7 @@ export class InterviewPrepService {
       flashcards,
       schedule: { days_available: input.days, days: sched.days, generatedAt: now },
       coverage: { uncovered_requirement_ids: loop.uncovered, passes: loop.passes, log: loop.log },
-      research: { sources: research.sources, signals: research.signals, limitations: research.limitations },
+      research: { sources: research.sources, signals: research.signals, limitations: research.limitations, techStack },
       generation: {
         provider: llm.providerName,
         model: llm.model,
