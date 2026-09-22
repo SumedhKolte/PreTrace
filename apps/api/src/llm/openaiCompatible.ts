@@ -6,7 +6,7 @@ import { LlmError, type LlmProvider, type LlmRequest, type LlmResponse } from ".
  * OpenRouter all expose one, so a single adapter covers every free-tier option.
  */
 export const PROVIDER_PRESETS: Record<string, { baseUrl: string; model: string }> = {
-  gemini: { baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.5-flash" },
+  gemini: { baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-3.5-flash-lite" },
   groq: { baseUrl: "https://api.groq.com/openai/v1", model: "llama-3.3-70b-versatile" },
   openrouter: { baseUrl: "https://openrouter.ai/api/v1", model: "meta-llama/llama-3.3-70b-instruct:free" },
   openai: { baseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" },
@@ -32,15 +32,34 @@ export class OpenAICompatibleProvider implements LlmProvider {
     this.baseUrl = opts.baseUrl.replace(/\/+$/, "");
   }
 
+  /** Optional parameters this provider/model rejected once; not sent again. */
+  private unsupported = new Set<string>();
+
   async complete(req: LlmRequest): Promise<LlmResponse> {
+    try {
+      return await this.send(req);
+    } catch (e) {
+      // Some OpenAI-compatible providers/models reject optional parameters (JSON mode,
+      // reasoning_effort). Degrade gracefully: drop them once and rely on schema validation.
+      if (e instanceof LlmError && e.kind === "bad_request" && /response_format|reasoning|json/i.test(e.message)) {
+        const before = this.unsupported.size;
+        if (/reasoning/i.test(e.message)) this.unsupported.add("reasoning_effort");
+        else this.unsupported.add("response_format");
+        if (this.unsupported.size > before) return this.send(req);
+      }
+      throw e;
+    }
+  }
+
+  private async send(req: LlmRequest): Promise<LlmResponse> {
     const body: Record<string, unknown> = {
       model: this.model,
       messages: req.messages,
       temperature: req.temperature,
       max_tokens: req.maxTokens,
     };
-    if (req.json) body.response_format = { type: "json_object" };
-    if (this.opts.reasoningEffort) body.reasoning_effort = this.opts.reasoningEffort;
+    if (req.json && !this.unsupported.has("response_format")) body.response_format = { type: "json_object" };
+    if (this.opts.reasoningEffort && !this.unsupported.has("reasoning_effort")) body.reasoning_effort = this.opts.reasoningEffort;
 
     let res: Response;
     try {
