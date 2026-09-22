@@ -24,6 +24,7 @@
     "ipaddr.js": "^2.2.0",
     "mongoose": "^9.10.1",
     "robots-parser": "^3.0.1",
+    "tsup": "^8.5.0",
     "undici": "^8.11.0",
     "zod": "^4.1.12"
   },
@@ -37,7 +38,6 @@
     "@types/node": "^22.18.12",
     "@types/supertest": "^6.0.3",
     "supertest": "^7.1.4",
-    "tsup": "^8.5.0",
     "vitest": "^5.0.1"
   }
 }
