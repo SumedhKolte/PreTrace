@@ -71,7 +71,7 @@ export function KitCard({ kit, index = 0 }: { kit: KitSummary; index?: number })
       <div className="mt-5 flex items-center justify-between border-t border-line pt-3.5 text-[12.5px] text-muted">
         <span className="flex items-center gap-1.5">
           <Clock className="h-3.5 w-3.5" />
-          {generating ? hostOf(kit.companyUrl) : `Practised ${relativeTime(kit.lastPracticedAt).toLowerCase()}`}
+          {generating ? hostOf(kit.companyUrl) : kit.lastPracticedAt ? `Practised ${relativeTime(kit.lastPracticedAt).toLowerCase()}` : "Not practised yet"}
         </span>
         <span className="flex items-center gap-1 font-medium text-ink group-hover:text-accent-700">
           {generating ? "Watch" : kit.status === "failed" ? "Details" : "Continue"} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />

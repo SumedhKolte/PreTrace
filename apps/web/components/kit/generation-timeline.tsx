@@ -69,7 +69,7 @@ export function GenerationTimeline({
   const current = stages.find((s) => s.status === "running");
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.25fr_1fr]">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
       <div className="card p-6">
         <div className="flex items-start justify-between gap-4">
           <div>

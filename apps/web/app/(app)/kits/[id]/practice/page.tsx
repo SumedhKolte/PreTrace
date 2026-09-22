@@ -102,7 +102,7 @@ export default function PracticePage() {
     const subject = itemFor(current);
     const pct = (index / items.length) * 100;
     return (
-      <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
         <div className="mx-auto w-full max-w-2xl">
           <div className="mb-4 flex items-center gap-3">
             <span className="text-[13px] font-medium tabular-nums text-muted">
@@ -189,7 +189,7 @@ export default function PracticePage() {
   // Plan
   const recItems = rec.data?.items ?? [];
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
       <Card>
         <CardHeader
           title="Recommended next session"

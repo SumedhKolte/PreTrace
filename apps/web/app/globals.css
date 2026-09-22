@@ -108,6 +108,12 @@
     border-radius: 16px;
     box-shadow: var(--shadow-card);
   }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
   .hairline {
     border-color: var(--color-line);
   }

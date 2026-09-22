@@ -340,7 +340,7 @@ function BatchFlow() {
             </div>
             <Label htmlFor={`jd-${i}`} hint={`${r.jd.length} chars`}>Job description</Label>
             <Textarea id={`jd-${i}`} rows={5} value={r.jd} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, jd: e.target.value } : x)))} />
-            <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_120px]">
+            <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px]">
               <div>
                 <Label htmlFor={`url-${i}`}>Company URL</Label>
                 <Input id={`url-${i}`} value={r.url} placeholder="acme.com" aria-invalid={!!r.url && !urlOk} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))} />

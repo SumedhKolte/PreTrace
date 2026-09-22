@@ -43,7 +43,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   const isLogin = mode === "login";
   return (
-    <div className="grid min-h-screen lg:grid-cols-[1fr_1.05fr]">
+    <div className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       <div className="flex flex-col px-6 py-6 sm:px-10">
         <Link href="/" className="w-fit">
           <Wordmark />

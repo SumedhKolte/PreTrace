@@ -31,9 +31,9 @@ export function PracticeItemView({ subject, onRate, busy, label }: { subject: Pr
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement;
-      if (t.closest("input, textarea, select, [role=dialog] input")) return;
-      if (!revealed && (e.key === " " || e.key === "Enter")) {
+      const t = e.target;
+      if (t instanceof Element && t.closest("input, textarea, select, [contenteditable=true]")) return;
+      if (!revealed && (e.key === " " || e.key === "Spacebar" || e.key === "Enter")) {
         e.preventDefault();
         setRevealed(true);
       } else if (revealed && !busy && /^[1-5]$/.test(e.key)) {

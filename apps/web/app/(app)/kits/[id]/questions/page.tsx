@@ -117,8 +117,8 @@ export default function QuestionsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="-mx-1 flex gap-1 overflow-x-auto px-1" role="tablist" aria-label="Question categories">
+      <div className="flex flex-col gap-3">
+        <div className="no-scrollbar -mx-1 flex min-w-0 gap-1 overflow-x-auto px-1 pb-0.5" role="tablist" aria-label="Question categories">
           {(["all", ...QUESTION_CATEGORIES] as Tab[]).map((t) => {
             const active = tab === t;
             const meta = t === "all" ? null : CATEGORY_META[t];
@@ -141,7 +141,7 @@ export default function QuestionsPage() {
           })}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
+          <div className="relative mr-auto">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-faint" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter questions" className="h-8 w-44 pl-8 text-[13px]" aria-label="Filter questions" />
           </div>

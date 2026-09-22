@@ -49,7 +49,7 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="mx-auto mt-16 grid max-w-5xl gap-3 md:grid-cols-5">
+          <div className="mx-auto mt-16 grid max-w-5xl gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
             {steps.map((s, i) => (
               <div key={s.title} className="card relative p-4 animate-rise" style={{ animationDelay: `${i * 60}ms` }}>
                 <div className="flex items-center justify-between">

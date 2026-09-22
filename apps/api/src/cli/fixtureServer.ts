@@ -64,7 +64,8 @@ export function startFixtureServer(port = 0, root = FIXTURES_DIR): Promise<{ url
     res.end(readFileSync(file));
   });
 
-  return new Promise((resolvePromise) => {
+  return new Promise((resolvePromise, reject) => {
+    server.once("error", reject);
     server.listen(port, () => {
       const addr = server.address() as { port: number };
       resolvePromise({

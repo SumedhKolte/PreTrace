@@ -119,7 +119,7 @@ export default function WeakSpotsPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <section className="space-y-3">
           <h2 className="flex items-center gap-2 text-[16px] font-semibold tracking-[-0.015em]">
             Top weak spots {readiness.weakSpots.length > 0 && <Badge tone="bad">{readiness.weakSpots.length}</Badge>}

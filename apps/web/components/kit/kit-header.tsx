@@ -155,7 +155,7 @@ export function KitHeader() {
         </div>
       )}
 
-      <nav aria-label="Kit sections" className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      <nav aria-label="Kit sections" className="no-scrollbar -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <div className="flex min-w-max gap-1 border-b border-line">
           {TABS.map((t) => {
             const href = `${base}${t.href}`;
