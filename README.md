@@ -83,10 +83,11 @@ Other scripts: `npm test`, `npm run typecheck`, `npm run lint`, `npm run build`.
 | **Coverage** | Deterministic check → targeted gap pass → re-check (max 2 LLM passes + deterministic backstop) |
 | **Builder** | Inline editing with debounced autosave, drag-and-drop (plus keyboard and touch-friendly move up/down), move between categories, pin, add, delete (restorable), per-section regeneration |
 | **Schedule** | Deterministic N-day plan, editable days (focus, minutes, questions), locked days survive rebuilds, change interview date |
-| **Practice** | One card at a time, reveal, 1–5 confidence (keyboard: Space, 1–5), per-requirement "covered this session" tracking, recommended sessions |
+| **Practice** | Active recall: attempt first (type or **voice dictation**), optional **AI answer critique** (rubric coverage, strengths, blind spots, stronger phrasing, interviewer curveball you can drill), blur-to-clear rubric reveal with covered points ticked, 1–5 keycap confidence (Space / 1–5), optional **pressure timer** with chime, "covered this session" tracking, recommended sessions |
+| **Company DNA** | Technologies the company writes about on its *own* pages (deterministic dictionary match, incl. sibling engineering blogs like `shopify.engineering`), overlap with your JD, and questions that connect them (e.g. MySQL at scale → Vitess) |
 | **Weak-Spot Coach** | Deterministic readiness and weakness scoring, ranked weak spots with reasons, 4-step repair sessions with before/after |
 | **Traceability** | "Why this question?" panel: JD quote → requirement → company/hiring/public signals → category → practice → weak spot |
-| **UX** | Live generation timeline, ⌘K command palette, skeletons, empty/error states, toasts, responsive with mobile bottom nav, print prep sheet, JSON export |
+| **UX** | Live generation timeline, ⌘K command palette, skeletons, empty/error states, toasts, responsive with mobile bottom nav, **interview-day cram sheet** (print / save PDF), JSON export |
 
 ---
 
@@ -217,6 +218,8 @@ The key ones:
 | **Readiness / weakness** | **Code** | Documented formulas over practice events |
 | Practice ordering | **Code** | Confidence-weighted priority score |
 | Repair follow-up question wording | **Model** (with a question fallback) | Optional; the flow works without it |
+| Company technologies (Company DNA) | **Code** | Dictionary + context-aware patterns over crawled pages; JD overlap and related-tech links (MySQL→Vitess) are code, the model only phrases questions |
+| Answer critique | **Model marks, code decides** | The model picks which numbered rubric points were covered (out-of-range indices dropped); the verdict label comes from the covered fraction. Advisory only — never changes readiness |
 
 ---
 
@@ -370,7 +373,7 @@ The fixture site `fixtures/sites/acme/company/about.html` contains a hidden inje
 
 ## Rate limiting, retries and deduplication
 
-- **LLM:** a single FIFO queue with `MAX_LLM_CONCURRENCY` and `LLM_MAX_RPM` spacing. Retries use exponential backoff with full jitter (`delay = rand(0.5..1)·min(60s, 1.5s·2^n)`) and honour `Retry-After` and Gemini's `retryDelay`. Invalid JSON gets **one repair round-trip** that shows the model its own output and the Zod errors; after that the step fails with `LLM_INVALID_RESPONSE`. A failed category degrades the kit to `partial` instead of failing it.
+- **LLM:** a single FIFO queue with `MAX_LLM_CONCURRENCY` and `LLM_MAX_RPM` spacing. Retries use exponential backoff with full jitter (`delay = rand(0.5..1)·min(60s, 1.5s·2^n)`) and honour `Retry-After` and Gemini's `retryDelay`. Every call requests **structured output** (the Zod schema converted to JSON Schema → `response_format: json_schema`), falling back to JSON mode and then plain text if a provider rejects it; keys are case-normalised. Invalid JSON still gets **one repair round-trip** that shows the model its own output and the Zod errors; after that the step fails with `LLM_INVALID_RESPONSE`. A failed category degrades the kit to `partial` instead of failing it.
 - **HTTP:** retries on network errors, 5xx, 429 and 408 with backoff; no retry on 4xx. There's a per-host politeness delay.
 - **Deduplication:** a per-user SHA-256 of the normalised JD plus the normalised company URL. A duplicate submission returns `DUPLICATE_KIT` with the existing kit ID, and the UI offers "Open existing" or "Create anyway". Research is cached and shared across users because it's public data; kits are never shared.
 
@@ -391,7 +394,7 @@ npm run evaluate -- --input <cases.json> --output <kits.json>
 ## Testing
 
 ```bash
-npm test          # shared + API: 146 tests
+npm test          # shared + API: 162 tests
 ```
 
 | Suite | Covers |
@@ -411,6 +414,8 @@ npm test          # shared + API: 146 tests
 Pipeline tests use `test/support/scriptedLlm.ts`, a **test-only** deterministic model double that derives answers from the real prompt content. It deliberately invents a requirement, a company fact and a hiring stage (which grounding must drop), and deliberately leaves a coverage gap. It is not reachable from production code.
 
 ## Deployment
+
+Step-by-step instructions (Atlas, Render, Vercel, env vars, gotchas) are in **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 
 Free-tier topology: **Vercel** (Next.js) → `/api/*` rewrite → **Render** (Express, `render.yaml`) → **MongoDB Atlas** (M0).
 

@@ -49,8 +49,15 @@ function Sheet({ kit, readiness }: { kit: KitWorkspace; readiness?: ReadinessRep
   const facts = kit.research.signals.filter((s) => s.kind === "company").slice(0, 4);
   const interview = new Date(new Date(kit.createdAt).getTime() + kit.input.days * 86_400_000);
   const left = daysUntil(interview.toISOString());
-  const questionFor = (rid: string): WorkspaceQuestion | undefined =>
-    live.filter((q) => q.requirement_ids.includes(rid)).sort((a, b) => b.difficulty - a.difficulty)[0];
+  const kindOf = new Map(kit.role.requirements.map((r) => [r.id, r.kind]));
+  /** Best question for a requirement: matching category first (technical ↔ technical/system design), then fewest other requirements, then hardest. */
+  const questionFor = (rid: string): WorkspaceQuestion | undefined => {
+    const wantBehavioural = kindOf.get(rid) === "behavioural";
+    const fits = (q: WorkspaceQuestion) => (wantBehavioural ? q.category === "behavioural" : q.category === "technical" || q.category === "system_design");
+    return live
+      .filter((q) => q.requirement_ids.includes(rid))
+      .sort((a, b) => Number(fits(b)) - Number(fits(a)) || a.requirement_ids.length - b.requirement_ids.length || b.difficulty - a.difficulty)[0];
+  };
   const top = [...live].sort((a, b) => b.difficulty - a.difficulty || a.order - b.order).slice(0, 6);
   const sources = [...new Set([...kit.companyBrief.sources, ...kit.companyBrief.hiring_process.stages.map((s) => s.source_url)])].slice(0, 6);
 
