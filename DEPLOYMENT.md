@@ -77,11 +77,36 @@ Then set `FRONTEND_URL` on Render to the final Vercel URL and redeploy the API, 
 2. Create a kit with a public company URL (e.g. `https://stripe.com`) and watch the generation timeline.
 3. Settings → **System** should show API / Database / AI provider as operational.
 
+## 5. Keeping the API awake (optional)
+
+A free Render instance spins down after ~15 minutes with no inbound requests, so the next
+visitor waits ~30–60 s. Regular pings to `/health` (a cheap route: no database or AI call,
+and outside the rate limiter) keep it running.
+
+**Option A: the included GitHub Action.** `.github/workflows/keep-awake.yml` pings every
+10 minutes. Enable it with repo **Settings → Secrets and variables → Actions → Variables →
+New repository variable**: `API_URL = https://<your-service>.onrender.com`. Without that
+variable the job exits quietly, so forks don't ping your service. You can also run it by hand
+(**Actions → Keep API awake → Run workflow**) to warm the instance before a demo.
+
+**Option B: an external monitor** (UptimeRobot, Better Stack, Cron-job.org — all have free
+tiers). Monitor `https://<your-service>.onrender.com/health` every 5 minutes. More reliable
+than Option A, and you get downtime alerts too.
+
+Trade-offs worth knowing before you enable either:
+
+- **Free instance hours.** Render's free tier gives 750 instance-hours per month across all
+  free web services. One service kept awake all month uses ~730 of them, so a second free
+  service will run out. Paid instances don't sleep at all and have no such limit.
+- **GitHub's scheduler.** Scheduled workflows are disabled after 60 days of repo inactivity,
+  and the shared cron queue can delay a run past the 15-minute window. Option B is steadier.
+- Pinging does not prevent the restarts that follow a deploy, nor Render's own maintenance.
+
 ## Production notes
 
 - **Cookies:** `HttpOnly`, `Secure` (because `NODE_ENV=production`), `SameSite=Lax`, first-party through the rewrite.
 - **SSRF:** production uses the strict policy. Never set `ALLOW_PRIVATE_URLS=true` in production; it exists only for local development against localhost fixture sites.
-- **Cold starts:** Render free instances sleep after ~15 minutes idle, and the first request can take ~30–60 s. A generation running when the instance sleeps is marked *interrupted* and offers **Retry**. For demos, open the app a minute early or use a paid instance.
+- **Cold starts:** Render free instances sleep after ~15 minutes idle, and the first request can take ~30–60 s. A generation running when the instance sleeps is marked *interrupted* and offers **Retry**. See *Keeping the API awake* above.
 - **Timeouts:** every API request is short (generation runs as a background job and the UI polls), so the Vercel rewrite's proxy timeout isn't a concern. The slowest synchronous call is an answer critique (a few seconds).
 - **Secrets:** never commit `.env`; configure secrets in the Render and Vercel dashboards only.
 - **Batch evaluator:** doesn't need any of this. `npm run evaluate -- --input cases.json --output kits.json` runs locally with just `LLM_API_KEY`.
