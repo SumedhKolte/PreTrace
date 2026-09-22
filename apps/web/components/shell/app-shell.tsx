@@ -155,7 +155,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-canvas/85 px-4 backdrop-blur lg:hidden">
         <Link href="/dashboard" className="flex items-center gap-2" aria-label="Dashboard">
           <LogoMark />
-          <span className="text-[14px] font-semibold">AI Interview Prep</span>
+          <span className="text-[15px] font-bold tracking-tight">PrepTrace</span>
         </Link>
         <div className="flex items-center gap-1">
           <button onClick={() => setPaletteOpen(true)} className={buttonClass("ghost", "icon")} aria-label="Search">

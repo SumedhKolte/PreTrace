@@ -89,8 +89,7 @@ export default function WeakSpotsPage() {
   return (
     <div className="space-y-6">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-2xl border border-night-line bg-night p-6 text-white sm:p-8">
-        <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-accent-500/20 blur-3xl" />
+      <div className="night-surface relative overflow-hidden rounded-2xl border border-night-line p-6 text-white sm:p-8">
         <div className="relative grid gap-8 md:grid-cols-[auto_1fr] md:items-center">
           <div className="flex items-center gap-5">
             <ReadinessRing value={readiness.overall} size={132} stroke={10} dark label="Overall readiness" />

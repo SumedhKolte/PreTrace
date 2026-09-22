@@ -52,14 +52,16 @@ export default function Landing() {
 
           {/* Official Product Banner Showcase */}
           <div className="mx-auto mt-12 max-w-5xl">
-            <div className="group relative overflow-hidden rounded-2xl border border-line-strong bg-night p-1.5 shadow-2xl transition-all duration-300 hover:shadow-[0_0_40px_rgba(56,189,248,0.2)]">
+            <div className="group relative overflow-hidden rounded-2xl border border-line-strong bg-night p-1.5 shadow-2xl transition-all duration-300 hover:shadow-[0_0_48px_rgba(0,212,255,0.22)]">
               <div className="relative aspect-[1024/384] w-full overflow-hidden rounded-xl">
                 <Image
-                  src="/banner.png"
+                  src="/banner.svg"
                   alt="PrepTrace: From Job Description to Interview-Ready"
                   fill
                   priority
+                  unoptimized
                   className="object-cover transition-transform duration-500 group-hover:scale-[1.01]"
+                  style={{ imageRendering: "-webkit-optimize-contrast" }}
                 />
               </div>
             </div>
@@ -85,8 +87,8 @@ export default function Landing() {
             { icon: ShieldCheck, title: "Honest by design", body: "Every fact links to a source. Thin JDs give thin kits. Missing hiring pages are reported, never imagined." },
             { icon: Target, title: "Your edits are safe", body: "Edit, pin, reorder and add questions. Regenerating a section never overwrites your work." },
           ].map((f) => (
-            <div key={f.title} className="rounded-2xl border border-night-line bg-night p-6 text-white">
-              <f.icon className="h-5 w-5 text-accent-300" />
+            <div key={f.title} className="night-surface rounded-2xl border border-night-line p-6 text-white">
+              <f.icon className="h-5 w-5 text-cyan" />
               <div className="mt-4 text-[15px] font-semibold">{f.title}</div>
               <p className="mt-1.5 text-[13.5px] leading-relaxed text-white/60">{f.body}</p>
             </div>

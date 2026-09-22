@@ -58,8 +58,7 @@ export default function DashboardPage() {
         <>
           {/* Hero: next interview + readiness */}
           <div className="grid gap-4 lg:grid-cols-3">
-            <div className="relative overflow-hidden rounded-2xl border border-night-line bg-night p-6 text-white lg:col-span-2">
-              <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-accent-500/25 blur-3xl" />
+            <div className="night-surface relative overflow-hidden rounded-2xl border border-night-line p-6 text-white lg:col-span-2">
               {next ? (
                 <div className="relative flex h-full flex-col justify-between gap-6 sm:flex-row sm:items-center">
                   <div className="min-w-0">

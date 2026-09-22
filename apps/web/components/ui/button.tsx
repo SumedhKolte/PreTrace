@@ -7,8 +7,9 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "dark" | "outline"
 type Size = "sm" | "md" | "lg" | "icon";
 
 const variants: Record<Variant, string> = {
+  // Brand blue → indigo; both ends keep white text above 4.5:1.
   primary:
-    "bg-accent-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_1px_2px_rgba(74,63,200,0.35)] hover:bg-accent-700 active:bg-accent-800",
+    "bg-[linear-gradient(135deg,#2657eb_0%,#4338ca_100%)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_1px_2px_rgba(38,87,235,0.35),0_6px_18px_-8px_rgba(58,107,255,0.6)] hover:brightness-110 active:brightness-95",
   secondary: "bg-surface text-ink border border-line shadow-card hover:bg-subtle hover:border-line-strong",
   outline: "bg-transparent text-ink border border-line hover:bg-subtle",
   ghost: "text-ink-2 hover:bg-subtle hover:text-ink",

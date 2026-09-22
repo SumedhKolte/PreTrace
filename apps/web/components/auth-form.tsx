@@ -96,10 +96,15 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           </p>
         </div>
       </div>
-      <aside className="relative hidden overflow-hidden bg-night lg:block">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(108,99,245,0.35),transparent_55%),radial-gradient(ellipse_at_bottom_left,rgba(108,99,245,0.15),transparent_50%)]" />
+      <aside className="night-surface relative hidden overflow-hidden lg:block">
         <div className="relative flex h-full flex-col justify-center px-14">
           <div className="max-w-md space-y-3">
+            <div className="mb-8">
+              <Wordmark dark />
+              <p className="mt-6 text-[26px] font-semibold leading-tight tracking-[-0.02em] text-white">
+                From job description to <span className="text-brand-gradient">interview-ready</span>.
+              </p>
+            </div>
             {[
               ["✓", "Extracting requirements", "Identified 6 must-have and 3 nice-to-have requirements"],
               ["✓", "Researching hiring process", "Found a hiring process page — 5 stages"],
@@ -108,7 +113,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             ].map(([mark, title, detail], i) => (
               <div key={title} className="animate-rise rounded-xl border border-night-line bg-night-2/80 p-4 backdrop-blur" style={{ animationDelay: `${i * 120}ms` }}>
                 <div className="flex items-center gap-2.5 text-[13.5px] font-medium text-white">
-                  <span className={mark === "●" ? "h-2 w-2 animate-pulse-dot rounded-full bg-accent-400" : "text-good"}>{mark === "●" ? "" : mark}</span>
+                  <span className={mark === "●" ? "h-2 w-2 animate-pulse-dot rounded-full bg-cyan" : "text-good"}>{mark === "●" ? "" : mark}</span>
                   {title}
                 </div>
                 <div className="mt-1 pl-5 text-[12.5px] text-white/55">{detail}</div>

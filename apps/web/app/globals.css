@@ -19,19 +19,25 @@
   --color-muted: #6b6b76;
   --color-faint: #9d9da6;
 
-  --color-night: #0d0d14;
-  --color-night-2: #16161f;
-  --color-night-line: #26263a;
+  /* Brand navy (from the PrepTrace logo) for dark surfaces */
+  --color-night: #070a13;
+  --color-night-2: #0d1326;
+  --color-night-line: #1c2540;
 
-  --color-accent-50: #f0f0ff;
-  --color-accent-100: #e3e3ff;
-  --color-accent-200: #c9c8ff;
-  --color-accent-300: #a7a4ff;
-  --color-accent-400: #8580fb;
-  --color-accent-500: #6c63f5;
-  --color-accent-600: #5a4ee6;
-  --color-accent-700: #4a3fc8;
-  --color-accent-800: #3d35a1;
+  /* Brand blue accent. Text-safe on white from 600 up (AA). */
+  --color-accent-50: #eef3ff;
+  --color-accent-100: #dde7ff;
+  --color-accent-200: #bccfff;
+  --color-accent-300: #8fb0ff;
+  --color-accent-400: #5c8bff;
+  --color-accent-500: #3a6bff;
+  --color-accent-600: #2657eb;
+  --color-accent-700: #1f45c2;
+  --color-accent-800: #1c3a99;
+
+  /* Glow colours: decorative only, used on navy surfaces (never as text on white). */
+  --color-cyan: #00d4ff;
+  --color-violet: #7c4dff;
 
   --color-good: #15803d;
   --color-good-soft: #ecfdf3;
@@ -48,6 +54,8 @@
   --animate-rise: rise 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   --animate-shimmer: shimmer 1.6s linear infinite;
   --animate-pulse-dot: pulse-dot 1.4s ease-in-out infinite;
+  --animate-unblur: unblur 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-timer-warn: timer-warn 1s ease-in-out infinite;
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -62,8 +70,16 @@
     to { background-position: 400px 0; }
   }
   @keyframes pulse-dot {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(108, 99, 245, 0.45); }
-    50% { box-shadow: 0 0 0 6px rgba(108, 99, 245, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(58, 107, 255, 0.45); }
+    50% { box-shadow: 0 0 0 6px rgba(58, 107, 255, 0); }
+  }
+  @keyframes unblur {
+    from { filter: blur(10px); opacity: 0.2; transform: translateY(4px); }
+    to { filter: blur(0); opacity: 1; transform: translateY(0); }
+  }
+  @keyframes timer-warn {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
   }
 }
 
@@ -108,6 +124,25 @@
     border-radius: 16px;
     box-shadow: var(--shadow-card);
   }
+  /* Brand gradient (logo): cyan → blue → violet. Decorative surfaces only. */
+  .bg-brand-gradient {
+    background-image: linear-gradient(120deg, var(--color-cyan) 0%, var(--color-accent-500) 48%, var(--color-violet) 100%);
+  }
+  .text-brand-gradient {
+    background-image: linear-gradient(100deg, #1fb8ff 0%, var(--color-accent-500) 55%, var(--color-violet) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .brand-glow {
+    box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.18), 0 10px 40px -12px rgba(58, 107, 255, 0.55);
+  }
+  .night-surface {
+    background:
+      radial-gradient(ellipse at 85% -10%, rgba(0, 212, 255, 0.16), transparent 50%),
+      radial-gradient(ellipse at 0% 110%, rgba(124, 77, 255, 0.18), transparent 55%),
+      var(--color-night);
+  }
   .no-scrollbar {
     scrollbar-width: none;
   }
@@ -151,6 +186,7 @@
 }
 
 @media print {
-  body { background: white; }
+  @page { size: A4; margin: 12mm; }
+  body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .no-print { display: none !important; }
 }
