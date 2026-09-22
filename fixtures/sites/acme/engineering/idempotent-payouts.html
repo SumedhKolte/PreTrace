@@ -1,0 +1,7 @@
+<!doctype html>
+<html><head><title>Designing idempotent payout APIs — Acme Engineering</title></head>
+<body><main>
+<h1>Designing idempotent payout APIs</h1>
+<p>Every payout request carries an idempotency key so that client retries never move money twice.</p>
+<p>We store keys in PostgreSQL with a unique constraint and return the original response for duplicates.</p>
+</main></body></html>

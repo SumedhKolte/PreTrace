@@ -1,0 +1,32 @@
+[
+  {
+    "id": "case-01",
+    "jd": "Senior Backend Engineer — Acme Payments\nLocation: Remote (Europe)\n\nAbout the role\nYou will design and build the services that move money for thousands of marketplaces.\n\nResponsibilities\n- Design, build and operate scalable payment and payout services in TypeScript/Node.js\n- Own services end to end, including on-call\n- Mentor engineers and review designs\n\nRequirements\n- 5+ years of backend development experience\n- Strong experience with Node.js and TypeScript\n- Deep knowledge of PostgreSQL, including transactions and indexing\n- Experience designing distributed systems and event-driven architectures\n- Excellent written communication skills\n- Experience mentoring other engineers\n\nNice to have\n- Experience with Kafka\n- Background in payments or fintech\n- Familiarity with Kubernetes",
+    "company_url": "http://localhost:8099/acme/",
+    "days": 5
+  },
+  {
+    "id": "case-02",
+    "jd": "Frontend Engineer at Globex Health (Manchester, hybrid)\n\nWhat you'll do:\n- Build accessible scheduling interfaces used by clinic staff every day\n- Work closely with designers and product managers\n\nWhat we're looking for:\n- 2+ years of professional experience with React\n- Solid JavaScript and CSS fundamentals\n- Experience writing automated tests for UI code\n- Clear communication with non-technical stakeholders\n\nBonus points:\n- React Native experience\n- Experience in healthcare software",
+    "company_url": "http://localhost:8099/globex/",
+    "days": 3
+  },
+  {
+    "id": "case-03",
+    "jd": "Software Engineer at Initech.\nWe need someone who knows Python.",
+    "company_url": "http://localhost:8099/initech/",
+    "days": 1
+  },
+  {
+    "id": "case-04",
+    "jd": "Backend Engineer. Must know Go and gRPC. Experience with Redis is a plus.",
+    "company_url": "http://localhost:1/nowhere/",
+    "days": 4
+  },
+  {
+    "id": "case-05",
+    "jd": "Data Engineer — Stressco\n\nRequirements:\n- Experience building batch and streaming data pipelines\n- Strong SQL skills\n- Python for data processing\n- Ownership of data quality and monitoring\n\nNice to have:\n- Apache Spark\n- Logistics domain knowledge",
+    "company_url": "http://localhost:8099/stress/",
+    "days": 60
+  }
+]
