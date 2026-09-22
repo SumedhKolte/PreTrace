@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Binoculars, CalendarRange, FileSearch, Gauge, ListChecks, ShieldCheck, Sparkles, Target } from "lucide-react";
 import { Wordmark } from "@/components/brand";
@@ -27,13 +28,13 @@ export default function Landing() {
       </header>
 
       <main>
-        <section className="grid-bg relative mx-auto max-w-6xl px-5 pb-16 pt-14 md:pt-24">
+        <section className="grid-bg relative mx-auto max-w-6xl px-5 pb-16 pt-12 md:pt-20">
           <div className="mx-auto max-w-3xl text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-ink-2 shadow-card">
               <Sparkles className="h-3.5 w-3.5 text-accent-600" /> Research-grounded interview prep
             </span>
-            <h1 className="text-balance mt-6 text-[40px] font-semibold leading-[1.05] tracking-[-0.035em] text-ink md:text-[60px]">
-              Turn a job description into your personal interview plan.
+            <h1 className="text-balance mt-6 text-[40px] font-semibold leading-[1.05] tracking-[-0.035em] text-ink md:text-[58px]">
+              Turn any job description into your <span className="text-accent-600">interview advantage</span>.
             </h1>
             <p className="text-balance mx-auto mt-5 max-w-2xl text-[17px] leading-relaxed text-muted">
               Paste the JD, add the company website and the days you have. Get a traceable kit — role breakdown, researched company brief, questions,
@@ -41,11 +42,26 @@ export default function Landing() {
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link href="/register" className={buttonClass("primary", "lg")}>
-                Create your first kit <ArrowRight className="h-4 w-4" />
+                Start Preparing <ArrowRight className="h-4 w-4" />
               </Link>
               <Link href="/login" className={buttonClass("secondary", "lg")}>
                 I have an account
               </Link>
+            </div>
+          </div>
+
+          {/* Official Product Banner Showcase */}
+          <div className="mx-auto mt-12 max-w-5xl">
+            <div className="group relative overflow-hidden rounded-2xl border border-line-strong bg-night p-1.5 shadow-2xl transition-all duration-300 hover:shadow-[0_0_40px_rgba(56,189,248,0.2)]">
+              <div className="relative aspect-[1024/384] w-full overflow-hidden rounded-xl">
+                <Image
+                  src="/banner.png"
+                  alt="PrepTrace: From Job Description to Interview-Ready"
+                  fill
+                  priority
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.01]"
+                />
+              </div>
             </div>
           </div>
 
