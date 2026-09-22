@@ -10,4 +10,6 @@ export default defineConfig({
   sourcemap: true,
   // Bundle the workspace package (TypeScript source); keep real npm deps external.
   noExternal: ["@preptrace/shared"],
+  // Dev-only embedded database; never bundled into the production server.
+  external: ["mongodb-memory-server"],
 });
