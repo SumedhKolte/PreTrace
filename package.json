@@ -1,0 +1,40 @@
+{
+  "name": "preptrace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Interview Prep Kit — turns a job description into a personalized, researched interview preparation system.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,magenta \"npm run dev -w @preptrace/api\" \"npm run dev -w @preptrace/web\"",
+    "dev:api": "npm run dev -w @preptrace/api",
+    "dev:web": "npm run dev -w @preptrace/web",
+    "build": "npm run build -w @preptrace/api && npm run build -w @preptrace/web",
+    "start:api": "npm run start -w @preptrace/api",
+    "start:web": "npm run start -w @preptrace/web",
+    "test": "npm run test -w @preptrace/shared && npm run test -w @preptrace/api",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "evaluate": "tsx apps/api/src/cli/evaluate.ts",
+    "fixtures:serve": "tsx apps/api/src/cli/serve-fixtures.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.5",
+    "globals": "^17.12.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.1"
+  },
+  "engines": {
+    "node": ">=20.11"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "mongodb-memory-server": true,
+    "unrs-resolver": true
+  }
+}
