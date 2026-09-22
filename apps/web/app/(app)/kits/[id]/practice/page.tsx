@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
+import { Volume2, VolumeX } from "lucide-react";
 import { ArrowRight, BookOpen, CheckCircle2, Circle, Clock, ListChecks, Play, RotateCcw, SkipForward, Sparkles, Trophy } from "lucide-react";
 import type { PracticeSessionDTO, ReadinessReport, SessionItem } from "@preptrace/shared";
 import { useKitCtx } from "@/components/kit/kit-context";
@@ -31,6 +32,8 @@ export default function PracticePage() {
   const [starting, setStarting] = useState<string | null>(null);
   const [startReadiness, setStartReadiness] = useState<number | null>(null);
   const [latest, setLatest] = useState<ReadinessReport | null>(null);
+  const [timer, setTimer] = usePref("pt.timer", 0);
+  const [sound, setSound] = usePref("pt.sound", 1);
 
   const itemFor = useCallback(
     (s: SessionItem): PracticeSubject | null => {
@@ -113,11 +116,27 @@ export default function PracticePage() {
               Skip
             </Button>
           </div>
-          <p className="mb-3 text-[12.5px] text-muted">
-            <Sparkles className="mr-1 inline h-3 w-3 text-accent-600" />
-            {current.reason}
-          </p>
-          {subject ? <PracticeItemView subject={subject} onRate={rate} busy={busy} /> : <EmptyState title="This item was deleted" action={<Button onClick={() => setIndex(index + 1)}>Next</Button>} />}
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[12.5px] text-muted">
+              <Sparkles className="mr-1 inline h-3 w-3 text-accent-600" />
+              {current.reason}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <div className="flex gap-0.5 rounded-lg border border-line bg-surface p-0.5" role="radiogroup" aria-label="Answer timer">
+                {[0, 120, 300, 600].map((s) => (
+                  <button key={s} role="radio" aria-checked={timer === s} onClick={() => setTimer(s)} className={cn("h-6 rounded-md px-2 text-[11.5px] font-medium", timer === s ? "bg-night text-white" : "text-muted hover:text-ink")}>
+                    {s === 0 ? "No timer" : `${s / 60}m`}
+                  </button>
+                ))}
+              </div>
+              {timer > 0 && (
+                <button onClick={() => setSound(sound ? 0 : 1)} aria-pressed={!!sound} aria-label={sound ? "Mute timer chime" : "Unmute timer chime"} className="flex h-7 w-7 items-center justify-center rounded-lg border border-line bg-surface text-muted hover:text-ink">
+                  {sound ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+                </button>
+              )}
+            </div>
+          </div>
+          {subject ? <PracticeItemView subject={subject} onRate={rate} busy={busy} timerSeconds={timer} sound={!!sound} /> : <EmptyState title="This item was deleted" action={<Button onClick={() => setIndex(index + 1)}>Next</Button>} />}
         </div>
         <aside className="space-y-4">
           <Card className="p-4">
@@ -273,4 +292,27 @@ export default function PracticePage() {
       </div>
     </div>
   );
+}
+
+/** Per-viewer preference in localStorage (a convenience; defaults apply when storage is unavailable). */
+function usePref(key: string, fallback: number): [number, (v: number) => void] {
+  const [value, setValue] = useState<number>(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
+      return raw === null ? fallback : Number(raw);
+    } catch {
+      return fallback;
+    }
+  });
+  return [
+    value,
+    (v: number) => {
+      setValue(v);
+      try {
+        window.localStorage.setItem(key, String(v));
+      } catch {
+        /* storage unavailable */
+      }
+    },
+  ];
 }

@@ -170,7 +170,7 @@ export function RepairSession({ requirementId, onClose, onNext }: { requirementI
               </div>
             </div>
           ) : current ? (
-            <PracticeItemView subject={current} onRate={rateItem} busy={busy} label={current.type === "flashcard" ? "Step 1 · Concept flashcard" : current.type === "question" ? "Step 2 · Interview question" : "Step 3 · Follow-up question"} />
+            <PracticeItemView subject={current} onRate={rateItem} busy={busy} requirementIds={requirementId ? [requirementId] : []} label={current.type === "flashcard" ? "Step 1 · Concept flashcard" : current.type === "question" ? "Step 2 · Interview question" : "Step 3 · Follow-up question"} />
           ) : null}
         </div>
       )}
