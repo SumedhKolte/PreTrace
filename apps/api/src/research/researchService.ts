@@ -179,15 +179,21 @@ export class ResearchService {
     // Stage 4 — hiring process discovery (never assume a hiring page exists)
     let hiring = EMPTY_HIRING;
     const hiringCandidates = selectHiringPages(allPages);
-    if (hiringCandidates.length === 0) {
+    if (hiringCandidates.pages.length === 0) {
       report("hiring_process", "done", "No official hiring process information was discovered");
       limitations.push("No official hiring process information was discovered.");
     } else {
-      report("hiring_process", "running", `Reading ${hiringCandidates.map((p) => new URL(p.url).pathname).join(", ")}`);
+      report("hiring_process", "running", `Reading ${hiringCandidates.pages.map((p) => new URL(p.url).pathname).join(", ")}`);
       try {
-        hiring = await this.extractHiring(hiringCandidates, llm);
+        hiring = await this.extractHiring(hiringCandidates.pages, llm);
+        if (hiring.found && hiringCandidates.earlyCareerOnly) {
+          hiring = {
+            ...hiring,
+            note: "These stages come from an early-career programme page; the process for experienced hires may differ.",
+          };
+        }
         for (const s of hiring.stages) signals.push({ id: nextId(), kind: "hiring", text: `${s.name}: ${s.description}`.trim(), source_url: s.source_url });
-        for (const e of hiring.expectations) signals.push({ id: nextId(), kind: "hiring", text: e, source_url: hiringCandidates[0].url });
+        for (const e of hiring.expectations) signals.push({ id: nextId(), kind: "hiring", text: e, source_url: hiringCandidates.pages[0].url });
         report("hiring_process", "done", hiring.found ? `Found a hiring process page — ${hiring.stages.length} stages` : "Hiring pages found, but no explicit interview stages");
         if (!hiring.found) limitations.push("No official hiring process information was discovered.");
       } catch (e) {
@@ -444,12 +450,14 @@ const EARLY_CAREER = /\b(intern(ship)?s?|graduates?|students?|university|early[-
  * Early-career programme pages (internships, graduate, APM) are used only when no
  * general hiring page exists — their process rarely applies to experienced hires.
  */
-export function selectHiringPages<T extends { url: string; title: string; text: string; hiringSignals: number; category: string }>(pages: T[]): T[] {
+export function selectHiringPages<T extends { url: string; title: string; text: string; hiringSignals: number; category: string }>(
+  pages: T[],
+): { pages: T[]; earlyCareerOnly: boolean } {
   const candidates = pages
     .filter((p) => p.hiringSignals >= 4 && /\binterview/i.test(p.text))
     .sort((a, b) => Number(b.category === "hiring") - Number(a.category === "hiring") || b.hiringSignals - a.hiringSignals);
   const general = candidates.filter((p) => !EARLY_CAREER.test(`${p.url} ${p.title}`));
-  return (general.length ? general : candidates).slice(0, 2);
+  return general.length ? { pages: general.slice(0, 2), earlyCareerOnly: false } : { pages: candidates.slice(0, 2), earlyCareerOnly: candidates.length > 0 };
 }
 
 /**

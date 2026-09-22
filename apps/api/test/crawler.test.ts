@@ -134,9 +134,12 @@ describe("real-world research refinements", () => {
     const { selectHiringPages } = await import("../src/research/researchService");
     const page = (url: string, title: string, hiringSignals: number) => ({ url, title, text: "our interview process", hiringSignals, category: "hiring" });
     const picked = selectHiringPages([page("https://internships.acme.com/", "Internships", 20), page("https://acme.com/careers", "Careers", 8)]);
-    expect(picked.map((p) => p.url)).toEqual(["https://acme.com/careers"]);
-    // …but early-career pages are still used when they are all there is
-    expect(selectHiringPages([page("https://acme.com/graduates", "Graduate programme", 9)])).toHaveLength(1);
+    expect(picked).toMatchObject({ earlyCareerOnly: false });
+    expect(picked.pages.map((p) => p.url)).toEqual(["https://acme.com/careers"]);
+    // …but early-career pages are still used (and flagged) when they are all there is
+    const fallback = selectHiringPages([page("https://acme.com/graduates", "Graduate programme", 9)]);
+    expect(fallback.pages).toHaveLength(1);
+    expect(fallback.earlyCareerOnly).toBe(true);
   });
 
   it("keeps one coherent process instead of merging two pages' stages", async () => {
@@ -145,5 +148,22 @@ describe("real-world research refinements", () => {
     const out = pickProcess([s("Apply", "a"), s("Life Story", "a"), s("Apply", "b"), s("Assessment", "b"), s("Craft interview", "b"), s("Life story", "b")]);
     expect(out.map((x) => x.name)).toEqual(["Apply", "Assessment", "Craft interview", "Life story"]);
     expect(new Set(out.map((x) => x.source_url))).toEqual(new Set(["b"]));
+  });
+});
+
+describe("link scoring against real-world patterns", () => {
+  it("treats 'hire a partner' as buying a service and down-ranks individual job postings", async () => {
+    const { makeScope, scoreLink, engineeringHints } = await import("../src/research/crawler/linkRanker");
+    const scope = makeScope("https://www.shopify.com/");
+    const partner = scoreLink({ url: "https://www.shopify.com/partners/directory", text: "Hire a Partner", title: "", context: "footer" }, 1, scope)!;
+    const careers = scoreLink({ url: "https://www.shopify.com/careers", text: "Careers", title: "", context: "footer" }, 1, scope)!;
+    const posting = scoreLink({ url: "https://www.shopify.com/careers/senior-analyst_62efacf8-e3b3-4265-be67-92f1e6f379ed", text: "Senior Analyst", title: "", context: "main" }, 2, scope, "careers")!;
+    expect(partner.score).toBeLessThan(3);
+    expect(careers.score).toBeGreaterThan(posting.score);
+    expect(posting.score).toBeLessThan(3);
+    expect(engineeringHints(scope)).toEqual(["https://engineering.shopify.com/", "https://shopify.engineering/"]);
+    expect(engineeringHints(makeScope("http://localhost:8099/acme/"))).toEqual([]);
+    const { classifyPage } = await import("../src/research/crawler/linkRanker");
+    expect(classifyPage("https://shopify.engineering/", "Shopify Engineering", ["Join our team"], "Posts about Rails")).toBe("engineering");
   });
 });

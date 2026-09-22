@@ -6,6 +6,7 @@ import { FetchError, type SafeFetcher } from "../net/safeFetch";
 import { extractPage, parseSitemap, type ExtractedPage } from "./htmlExtract";
 import {
   classifyPage,
+  engineeringHints,
   HINT_PATHS,
   hiringSignalCount,
   inScope,
@@ -150,17 +151,26 @@ export async function crawlCompanySite(
 
   // Last-resort hints only for categories that link discovery did not surface at all.
   const haveCat = (cats: LinkCategory[]) => [...queue.values()].some((c) => cats.includes(c.category));
+  const discoveredEngineering = haveCat(["engineering"]); // measured before any hints are queued
   for (const hint of HINT_PATHS) {
     const cats: LinkCategory[] = hint.category === "careers" ? ["careers", "hiring"] : [hint.category];
     if (haveCat(cats)) continue;
     const url = normalizeCrawlUrl(new URL(hint.path, scope.origin + scope.pathPrefix).toString());
     enqueue({ url, score: MIN_LINK_SCORE, depth: 1, category: hint.category, via: "hint", external: false });
   }
+  if (!discoveredEngineering) {
+    for (const url of engineeringHints(scope)) {
+      enqueue({ url: normalizeCrawlUrl(url), score: MIN_LINK_SCORE, depth: 1, category: "engineering", via: "hint", external: !inScope(url, scope).ok || inScope(url, scope).external });
+    }
+  }
 
   const pages: CrawledPage[] = [];
   const maxPages = Math.max(0, opts.maxPages - 1); // homepage counts toward the budget
+  // Hard cap on fetches (including failed/empty ones) so JS-heavy sites can't burn time.
+  const maxFetches = opts.maxPages * 3;
+  let fetches = 0;
 
-  while (pages.length < maxPages && queue.size > 0) {
+  while (pages.length < maxPages && queue.size > 0 && fetches < maxFetches) {
     const batch = [...queue.values()]
       .sort((a, b) => b.score - a.score || a.depth - b.depth || a.url.localeCompare(b.url))
       .slice(0, Math.min(opts.concurrency, maxPages - pages.length));
@@ -168,6 +178,7 @@ export async function crawlCompanySite(
       queue.delete(c.url);
       visited.add(c.url);
     }
+    fetches += batch.length;
 
     const results = await Promise.all(
       batch.map(async (c): Promise<CrawledPage | null> => {

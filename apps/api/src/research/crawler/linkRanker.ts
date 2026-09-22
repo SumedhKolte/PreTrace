@@ -41,8 +41,10 @@ const NEGATIVE: { re: RegExp; weight: number }[] = [
   { re: /\b(cart|checkout|shop|store|pricing|billing|download)\b/, weight: -6 },
   { re: /\b(status|support|help|faq|contact|investors?)\b/, weight: -3 },
   { re: /\b(partners? (?:directory|program)|directory|affiliates?|resellers?|app store|themes?)\b/, weight: -5 },
-  // Early-career programmes rarely describe the process for experienced hires.
-  { re: /\b(internships?|interns?|graduates?|students?|university|early[- ]careers?|apm)\b/, weight: -3 },
+  // "Hire a partner / an expert" is buying a service, not a job.
+  { re: /\bhire (?:a|an|our|the|top)\b/, weight: -12 },
+  // Early-career programmes: still crawled (fallback for the hiring process) but ranked lower.
+  { re: /\b(internships?|interns?|graduates?|students?|university|early[- ]careers?|apm)\b/, weight: -1 },
 ];
 
 const BINARY_EXT = /\.(pdf|zip|gz|tar|png|jpe?g|gif|webp|svg|ico|mp[34]|mov|avi|woff2?|ttf|css|js|json|xml|rss|dmg|exe|docx?|xlsx?|pptx?)$/i;
@@ -183,12 +185,26 @@ export function scoreLink(link: ExtractedLink, depth: number, scope: CrawlScope,
     }
   }
   if (link.context === "nav" || link.context === "header") score += 1;
+  // Individual job postings (…/careers/<slug>_<id>) are usually JS shells with no process detail.
+  if (/\/(?:careers|jobs|positions|openings)\/[^/]*(?:[0-9a-f]{8}-[0-9a-f]{4}|[_-][0-9a-f]{6,}|\d{5,})/i.test(u.pathname)) score -= 8;
   if (parentCategory === "hiring" || parentCategory === "careers") {
     if (best === "hiring") score += 4;
   }
   if (scopeCheck.external) score -= 2;
   score -= depth * 1.5;
   return { url: normalizeCrawlUrl(link.url), score: Math.round(score * 10) / 10, category: best, signals, external: scopeCheck.external };
+}
+
+/**
+ * Conventional engineering-blog hosts (engineering.<domain>, <brand>.engineering), tried only
+ * when no engineering link was discovered. Fetched through the same SSRF-safe fetcher; a
+ * missing host simply fails and is skipped.
+ */
+export function engineeringHints(scope: CrawlScope): string[] {
+  if (scope.isIpOrLocal) return [];
+  const hints = [`https://engineering.${scope.siteDomain}/`];
+  if (scope.brand) hints.push(`https://${scope.brand}.engineering/`);
+  return hints;
 }
 
 /** Low-priority fallback hints, used only when link discovery found nothing for a category. */
@@ -221,6 +237,8 @@ export function classifyPage(url: string, title: string, headings: string[], tex
   const hay = `${pathWords(u)} ${title} ${headings.slice(0, 8).join(" ")}`.toLowerCase();
   const hiring = hiringSignalCount(text);
   if (hiring >= 6 && /\binterview/.test(text.toLowerCase())) return "hiring";
+  // Dedicated engineering hosts (engineering.acme.com, acme.engineering) are engineering content.
+  if (/^engineering\.|\.engineering$/.test(u.hostname) || /^\/(?:engineering|eng)(?:\/|$)/.test(u.pathname)) return "engineering";
   const acc = new Map<LinkCategory, number>();
   scoreText(hay, 1, acc, [], "page");
   acc.delete("other");
