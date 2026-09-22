@@ -62,3 +62,16 @@ describe("OpenAI-compatible adapter", () => {
     expect(e.retryable).toBe(false);
   });
 });
+
+describe("structured outputs", () => {
+  it("sends json_schema when given and falls back to json_object when rejected", async () => {
+    mode = "ok";
+    const schemaReq = { ...req, jsonSchema: { type: "object", properties: { ok: { type: "boolean" } } } };
+    await provider().complete(schemaReq);
+    expect(bodies.at(-1)?.response_format).toMatchObject({ type: "json_schema", json_schema: { name: "t" } });
+    mode = "reject_json";
+    const p = provider();
+    await p.complete(schemaReq);
+    expect(bodies.at(-1)?.response_format).toBeUndefined(); // json_schema dropped, then json_object dropped
+  });
+});

@@ -1,4 +1,4 @@
-import type { ZodType } from "zod";
+import { toJSONSchema, type ZodType } from "zod";
 import { RequestQueue, withRetry } from "../lib/async";
 import { AppError } from "../lib/errors";
 import { logger } from "../lib/logger";
@@ -32,8 +32,35 @@ export interface LlmStats {
 
 const newStats = (): LlmStats => ({ calls: 0, retries: 0, repairs: 0, failures: 0, byTask: {} });
 
+/** Lower-case object keys recursively: models sometimes emit "Follow_up" for "follow_up". */
+export function normalizeKeys(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(normalizeKeys);
+  if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k.toLowerCase(), normalizeKeys(x)]));
+  return v;
+}
+
+const schemaCache = new WeakMap<object, Record<string, unknown> | null>();
+
+/** Zod → JSON Schema for provider-side structured outputs. Null if a schema can't be represented. */
+export function jsonSchemaFor(schema: ZodType<unknown>): Record<string, unknown> | undefined {
+  if (!schemaCache.has(schema)) {
+    try {
+      const js = toJSONSchema(schema, { io: "input", unrepresentable: "any" }) as Record<string, unknown>;
+      delete js.$schema;
+      schemaCache.set(schema, js);
+    } catch {
+      schemaCache.set(schema, null);
+    }
+  }
+  return schemaCache.get(schema) ?? undefined;
+}
+
 /** Pull the JSON payload out of a model response (tolerates code fences and chatter). */
 export function extractJson(text: string): unknown {
+  return normalizeKeys(extractRawJson(text));
+}
+
+function extractRawJson(text: string): unknown {
   const trimmed = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
   try {
     return JSON.parse(trimmed);
@@ -148,6 +175,7 @@ export class LlmClient {
               task: t.task,
               messages,
               json: true,
+              jsonSchema: jsonSchemaFor(t.schema as ZodType<unknown>),
               maxTokens: t.maxTokens ?? this.opts.maxTokens,
               temperature: t.temperature ?? this.opts.temperature,
             }),

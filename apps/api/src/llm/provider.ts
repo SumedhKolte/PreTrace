@@ -10,6 +10,8 @@ export interface LlmRequest {
   task: string;
   messages: LlmMessage[];
   json: boolean;
+  /** JSON Schema for structured outputs (constrained decoding) where the provider supports it. */
+  jsonSchema?: Record<string, unknown>;
   maxTokens: number;
   temperature: number;
 }

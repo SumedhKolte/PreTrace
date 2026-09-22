@@ -96,3 +96,13 @@ describe("LLM client resilience", () => {
     expect(backoffDelay(3, 1000, 60_000, () => 0)).toBe(4000);
   });
 });
+
+describe("output normalisation", () => {
+  it("normalises key casing and converts Zod schemas to JSON Schema", async () => {
+    const { normalizeKeys, jsonSchemaFor } = await import("../src/llm/client");
+    expect(normalizeKeys({ Follow_up: "x", Items: [{ Name: 1 }] })).toEqual({ follow_up: "x", items: [{ name: 1 }] });
+    const js = jsonSchemaFor(z.object({ a: z.string().default(""), n: z.coerce.number() }))!;
+    expect(js).toMatchObject({ type: "object", properties: { a: { type: "string" } } });
+    expect(js.$schema).toBeUndefined();
+  });
+});

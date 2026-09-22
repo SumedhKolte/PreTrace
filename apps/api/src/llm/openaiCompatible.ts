@@ -41,11 +41,13 @@ export class OpenAICompatibleProvider implements LlmProvider {
     } catch (e) {
       // Some OpenAI-compatible providers/models reject optional parameters (JSON mode,
       // reasoning_effort). Degrade gracefully: drop them once and rely on schema validation.
-      if (e instanceof LlmError && e.kind === "bad_request" && /response_format|reasoning|json/i.test(e.message)) {
+      // Fallback chain for output format: json_schema → json_object → plain (schema validation still applies).
+      if (e instanceof LlmError && e.kind === "bad_request" && /response_format|reasoning|json|schema/i.test(e.message)) {
         const before = this.unsupported.size;
         if (/reasoning/i.test(e.message)) this.unsupported.add("reasoning_effort");
+        else if (req.jsonSchema && !this.unsupported.has("json_schema")) this.unsupported.add("json_schema");
         else this.unsupported.add("response_format");
-        if (this.unsupported.size > before) return this.send(req);
+        if (this.unsupported.size > before) return this.complete(req);
       }
       throw e;
     }
@@ -58,7 +60,12 @@ export class OpenAICompatibleProvider implements LlmProvider {
       temperature: req.temperature,
       max_tokens: req.maxTokens,
     };
-    if (req.json && !this.unsupported.has("response_format")) body.response_format = { type: "json_object" };
+    if (req.json && !this.unsupported.has("response_format")) {
+      body.response_format =
+        req.jsonSchema && !this.unsupported.has("json_schema")
+          ? { type: "json_schema", json_schema: { name: req.task.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 64), schema: req.jsonSchema, strict: false } }
+          : { type: "json_object" };
+    }
     if (this.opts.reasoningEffort && !this.unsupported.has("reasoning_effort")) body.reasoning_effort = this.opts.reasoningEffort;
 
     let res: Response;
