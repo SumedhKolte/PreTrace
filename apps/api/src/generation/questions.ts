@@ -12,6 +12,7 @@ import {
 import type { Llm } from "../llm/client";
 import { system, trusted, untrusted } from "../llm/prompt";
 import { jaccard, sanitizeUntrusted } from "../lib/text";
+import { techLinks } from "../research/techStack";
 
 export interface QuestionContext {
   companyName: string;
@@ -183,8 +184,13 @@ function techBlock(ctx: QuestionContext): string {
     .slice(0, 16)
     .map((t) => `${t.name}${t.inJd ? " (also in JD)" : ""}`)
     .join(", ");
+  const links = techLinks(ctx.requirements, techs);
+  const directives = links.map((l) => `- ${l.requirementId} asks for ${l.jdTech}; the company's own pages mention ${l.companyTech}. Connect them in a question.`);
   // Names come from our own dictionary (never free text from pages), so this block is trusted.
-  return trusted("company_technology", `Technologies the company's own website mentions: ${line}`);
+  return trusted(
+    "company_technology",
+    `Technologies the company's own website mentions: ${line}${directives.length ? `\nRelated to this JD:\n${directives.join("\n")}` : ""}`,
+  );
 }
 
 function contextBlocks(ctx: QuestionContext) {

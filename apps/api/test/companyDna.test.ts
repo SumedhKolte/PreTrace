@@ -76,3 +76,12 @@ describe("answer critique", () => {
     expect(c.followUp).toMatch(/times out/);
   });
 });
+
+describe("JD ↔ company technology links", () => {
+  it("connects a JD requirement to related verified company technology", async () => {
+    const { techLinks } = await import("../src/research/techStack");
+    const techs = detectTechStack([{ url: "u", text: "We scale MySQL horizontally with Vitess. Mobile apps in Kotlin." }]);
+    const links = techLinks([{ id: "r3", text: "Experience with MySQL at scale" }, { id: "r5", text: "Mentoring" }], techs);
+    expect(links).toEqual([{ requirementId: "r3", jdTech: "MySQL", companyTech: "Vitess" }]);
+  });
+});

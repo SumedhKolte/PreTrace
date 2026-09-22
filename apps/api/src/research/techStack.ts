@@ -132,3 +132,47 @@ export function markJdOverlap(techs: CompanyTech[], jd: string): CompanyTech[] {
     })
     .sort((a, b) => Number(b.inJd) - Number(a.inJd) || b.mentions - a.mentions || a.name.localeCompare(b.name));
 }
+
+/**
+ * Technologies that are closely related, e.g. Vitess is sharded MySQL. When the JD asks for
+ * one and the company's own pages mention the other, that connection is worth a question.
+ */
+const RELATED: Record<string, string[]> = {
+  MySQL: ["Vitess", "PlanetScale"],
+  PostgreSQL: ["CockroachDB", "Spanner"],
+  SQL: ["Vitess", "CockroachDB", "Spanner", "BigQuery", "Snowflake", "ClickHouse"],
+  Kafka: ["Apache Flink", "Pub/Sub", "Event-driven architecture"],
+  Java: ["Kotlin", "Scala", "Spring Boot"],
+  React: ["React Native", "Next.js"],
+  JavaScript: ["TypeScript", "Node.js"],
+  TypeScript: ["Node.js"],
+  "Node.js": ["TypeScript"],
+  Kubernetes: ["Istio", "Envoy", "Docker"],
+  Docker: ["Kubernetes"],
+  Python: ["Apache Spark", "Airflow", "FastAPI", "Django"],
+  "Ruby on Rails": ["Ruby"],
+  Ruby: ["Ruby on Rails"],
+};
+
+export interface TechLink {
+  requirementId: string;
+  jdTech: string;
+  companyTech: string;
+}
+
+/** Deterministic JD-requirement ↔ company-technology links (direct matches and related tech). */
+export function techLinks(requirements: { id: string; text: string }[], techs: CompanyTech[]): TechLink[] {
+  const company = new Set(techs.map((t) => t.name));
+  const links: TechLink[] = [];
+  for (const r of requirements) {
+    for (const def of TECH_DICTIONARY) {
+      if (countMatches(def.re, r.text) === 0) continue;
+      for (const related of RELATED[def.name] ?? []) {
+        if (company.has(related) && !links.some((l) => l.requirementId === r.id && l.companyTech === related)) {
+          links.push({ requirementId: r.id, jdTech: def.name, companyTech: related });
+        }
+      }
+    }
+  }
+  return links.slice(0, 6);
+}
