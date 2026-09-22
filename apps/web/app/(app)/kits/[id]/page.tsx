@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, Building2, CheckCircle2, Cpu, Gauge, Globe2, ListChecks, Route, Target, UserSearch } from "lucide-react";
+import { CompanyDna } from "@/components/kit/company-dna";
 import { useKitCtx } from "@/components/kit/kit-context";
 import { CATEGORY_META } from "@/components/kit/labels";
 import { Badge, IdTag } from "@/components/ui/badge";
@@ -107,6 +108,12 @@ export default function KitOverviewPage() {
               <Badge>{kit.source.pages_used.length} company pages</Badge>
               {kit.companyBrief.public_signals.length > 0 && <Badge tone="warn">{kit.companyBrief.public_signals.length} public signals</Badge>}
             </div>
+            {kit.research.techStack.length > 0 && (
+              <div>
+                <SectionLabel className="mb-1.5">Company DNA</SectionLabel>
+                <CompanyDna techs={kit.research.techStack} compact />
+              </div>
+            )}
             {kit.research.limitations.slice(0, 2).map((l) => (
               <p key={l} className="text-[12.5px] leading-relaxed text-muted">
                 {l}

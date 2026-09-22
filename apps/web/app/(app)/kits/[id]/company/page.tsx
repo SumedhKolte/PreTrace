@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Building2, Globe, History, Pencil, RefreshCw, Route, ShieldQuestion } from "lucide-react";
+import { CompanyDna } from "@/components/kit/company-dna";
+import { AlertTriangle, Building2, Cpu, Globe, History, Pencil, RefreshCw, Route, ShieldQuestion } from "lucide-react";
 import { useKitCtx } from "@/components/kit/kit-context";
 import { RegenerateDialog } from "@/components/kit/regenerate-dialog";
 import { ResearchSourceRow } from "@/components/kit/research-source";
@@ -112,6 +113,13 @@ export default function CompanyPage() {
                 ))}
               </div>
             )}
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="Company DNA" icon={<Cpu className="h-4 w-4" />} description="Technologies and practices the company writes about on its own site — used to set technical scenarios in their stack." />
+          <CardBody>
+            <CompanyDna techs={kit.research.techStack} />
           </CardBody>
         </Card>
 

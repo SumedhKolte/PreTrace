@@ -127,7 +127,7 @@ export function KitHeader() {
                 Download kit JSON
               </MenuItem>
               <MenuItem icon={<Printer />} onSelect={() => router.push(`/print/${kit.id}`)}>
-                Print prep sheet
+                Interview-day cram sheet
               </MenuItem>
               <MenuSeparator />
               <MenuItem icon={<CalendarClock />} onSelect={() => setTimelineOpen(true)}>
