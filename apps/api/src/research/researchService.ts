@@ -178,10 +178,7 @@ export class ResearchService {
 
     // Stage 4 — hiring process discovery (never assume a hiring page exists)
     let hiring = EMPTY_HIRING;
-    const hiringCandidates = allPages
-      .filter((p) => p.hiringSignals >= 4 && /\binterview/i.test(p.text))
-      .sort((a, b) => Number(b.category === "hiring") - Number(a.category === "hiring") || b.hiringSignals - a.hiringSignals)
-      .slice(0, 2);
+    const hiringCandidates = selectHiringPages(allPages);
     if (hiringCandidates.length === 0) {
       report("hiring_process", "done", "No official hiring process information was discovered");
       limitations.push("No official hiring process information was discovered.");
@@ -327,13 +324,13 @@ export class ResearchService {
       temperature: 0.1,
     });
     const pageFor = (id: string) => pages[Number(id.replace(/\D/g, "")) - 1];
-    const stages = out.stages
+    const grounded = out.stages
       .filter((s) => {
         const p = pageFor(s.page_id);
         return p && (quoteSupported(s.quote, p.text, 0.8) || quoteSupported(`${s.name} ${s.description}`, p.text, 0.7));
       })
-      .slice(0, 10)
       .map((s) => ({ name: s.name.trim(), description: s.description.trim(), source_url: pageFor(s.page_id)!.url }));
+    const stages = pickProcess(grounded);
     const expectations = out.expectations
       .filter((e) => {
         const p = pageFor(e.page_id);
@@ -438,4 +435,39 @@ function countBy(xs: string[]): Record<string, number> {
   const o: Record<string, number> = {};
   for (const x of xs) if (x !== "other") o[x] = (o[x] ?? 0) + 1;
   return o;
+}
+
+const EARLY_CAREER = /\b(intern(ship)?s?|graduates?|students?|university|early[- ]careers?|apm)\b/i;
+
+/**
+ * Pages to read for the hiring process: strong interview signals, hiring pages first.
+ * Early-career programme pages (internships, graduate, APM) are used only when no
+ * general hiring page exists — their process rarely applies to experienced hires.
+ */
+export function selectHiringPages<T extends { url: string; title: string; text: string; hiringSignals: number; category: string }>(pages: T[]): T[] {
+  const candidates = pages
+    .filter((p) => p.hiringSignals >= 4 && /\binterview/i.test(p.text))
+    .sort((a, b) => Number(b.category === "hiring") - Number(a.category === "hiring") || b.hiringSignals - a.hiringSignals);
+  const general = candidates.filter((p) => !EARLY_CAREER.test(`${p.url} ${p.title}`));
+  return (general.length ? general : candidates).slice(0, 2);
+}
+
+/**
+ * Two pages can describe two different processes; merging them produces nonsense
+ * ("Apply → … → Apply → …"). Keep the single page with the most grounded stages and
+ * drop repeated stage names.
+ */
+export function pickProcess(stages: { name: string; description: string; source_url: string }[]) {
+  const byPage = new Map<string, typeof stages>();
+  for (const s of stages) byPage.set(s.source_url, [...(byPage.get(s.source_url) ?? []), s]);
+  const best = [...byPage.values()].sort((a, b) => b.length - a.length)[0] ?? [];
+  const seen = new Set<string>();
+  return best
+    .filter((s) => {
+      const k = normalizeText(s.name);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    })
+    .slice(0, 10);
 }

@@ -40,6 +40,9 @@ const NEGATIVE: { re: RegExp; weight: number }[] = [
   { re: /\b(privacy|terms|cookies?|legal|gdpr|dpa|imprint|accessibility statement)\b/, weight: -20 },
   { re: /\b(cart|checkout|shop|store|pricing|billing|download)\b/, weight: -6 },
   { re: /\b(status|support|help|faq|contact|investors?)\b/, weight: -3 },
+  { re: /\b(partners? (?:directory|program)|directory|affiliates?|resellers?|app store|themes?)\b/, weight: -5 },
+  // Early-career programmes rarely describe the process for experienced hires.
+  { re: /\b(internships?|interns?|graduates?|students?|university|early[- ]careers?|apm)\b/, weight: -3 },
 ];
 
 const BINARY_EXT = /\.(pdf|zip|gz|tar|png|jpe?g|gif|webp|svg|ico|mp[34]|mov|avi|woff2?|ttf|css|js|json|xml|rss|dmg|exe|docx?|xlsx?|pptx?)$/i;
@@ -64,6 +67,8 @@ export interface CrawlScope {
   /** Directory prefix for path-scoped sites, e.g. /acme/ on a shared host. */
   pathPrefix: string;
   isIpOrLocal: boolean;
+  /** Brand label ("shopify" for shopify.com) — admits sibling domains like shopify.engineering. */
+  brand: string | null;
 }
 
 export function makeScope(startUrl: string): CrawlScope {
@@ -79,7 +84,15 @@ export function makeScope(startUrl: string): CrawlScope {
     siteDomain: hostname.replace(/^www\./, ""),
     pathPrefix: dir || "/",
     isIpOrLocal,
+    brand: isIpOrLocal ? null : brandLabel(hostname),
   };
+}
+
+/** "www.shopify.com" → "shopify"; "acme.co.uk" → "acme". Null for short/generic labels. */
+export function brandLabel(hostname: string): string | null {
+  const labels = hostname.replace(/^www\./, "").split(".");
+  const sld = labels.length >= 3 && /^(co|com|org|net|ac|gov)$/.test(labels[labels.length - 2]) ? labels[labels.length - 3] : labels[labels.length - 2];
+  return sld && sld.length >= 4 ? sld : null;
 }
 
 export function inScope(url: string, scope: CrawlScope): { ok: boolean; external: boolean } {
@@ -94,7 +107,12 @@ export function inScope(url: string, scope: CrawlScope): { ok: boolean; external
   const sameSite = scope.isIpOrLocal
     ? u.host.toLowerCase() === scope.host
     : hostname === scope.siteDomain || hostname.endsWith(`.${scope.siteDomain}`);
-  if (!sameSite) return { ok: false, external: false };
+  if (!sameSite) {
+    // Sibling brand domain (shopify.com → shopify.engineering, acme.com → acme.dev): read but never
+    // expanded, so the crawl can't wander. Every fetch still passes the SSRF checks.
+    const sibling = scope.brand !== null && hostname.replace(/^www\./, "").split(".")[0] === scope.brand;
+    return { ok: sibling, external: sibling };
+  }
   // Path scoping only applies on the start host (a shared host serving several sites under /name/).
   if (u.host.toLowerCase() === scope.host && scope.pathPrefix !== "/" && !u.pathname.startsWith(scope.pathPrefix)) {
     return { ok: false, external: false };

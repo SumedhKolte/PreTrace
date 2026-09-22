@@ -116,3 +116,34 @@ describe("prompt-injection handling of retrieved content", () => {
     expect(s.text).not.toContain("</untrusted_content>");
   });
 });
+
+describe("real-world research refinements", () => {
+  it("admits sibling brand domains (read, not expanded) but not unrelated sites", async () => {
+    const { brandLabel, inScope, makeScope } = await import("../src/research/crawler/linkRanker");
+    expect(brandLabel("www.shopify.com")).toBe("shopify");
+    expect(brandLabel("acme.co.uk")).toBe("acme");
+    expect(brandLabel("x.io")).toBeNull();
+    const scope = makeScope("https://www.shopify.com/");
+    expect(inScope("https://shopify.engineering/blog", scope)).toEqual({ ok: true, external: true });
+    expect(inScope("https://careers.shopify.com/", scope)).toEqual({ ok: true, external: false });
+    expect(inScope("https://notshopify.com/", scope)).toEqual({ ok: false, external: false });
+    expect(inScope("http://localhost:9999/", makeScope("http://localhost:8099/acme/")).ok).toBe(false);
+  });
+
+  it("prefers general hiring pages over early-career programme pages", async () => {
+    const { selectHiringPages } = await import("../src/research/researchService");
+    const page = (url: string, title: string, hiringSignals: number) => ({ url, title, text: "our interview process", hiringSignals, category: "hiring" });
+    const picked = selectHiringPages([page("https://internships.acme.com/", "Internships", 20), page("https://acme.com/careers", "Careers", 8)]);
+    expect(picked.map((p) => p.url)).toEqual(["https://acme.com/careers"]);
+    // …but early-career pages are still used when they are all there is
+    expect(selectHiringPages([page("https://acme.com/graduates", "Graduate programme", 9)])).toHaveLength(1);
+  });
+
+  it("keeps one coherent process instead of merging two pages' stages", async () => {
+    const { pickProcess } = await import("../src/research/researchService");
+    const s = (name: string, url: string) => ({ name, description: "", source_url: url });
+    const out = pickProcess([s("Apply", "a"), s("Life Story", "a"), s("Apply", "b"), s("Assessment", "b"), s("Craft interview", "b"), s("Life story", "b")]);
+    expect(out.map((x) => x.name)).toEqual(["Apply", "Assessment", "Craft interview", "Life story"]);
+    expect(new Set(out.map((x) => x.source_url))).toEqual(new Set(["b"]));
+  });
+});
