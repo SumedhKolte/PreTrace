@@ -142,6 +142,8 @@ export interface WorkspaceSchedule {
 export interface HiringProcess {
   found: boolean;
   summary: string;
+  /** Caveat shown with the stages, e.g. when they come from an early-career programme page. */
+  note?: string;
   stages: { name: string; description: string; source_url: string }[];
   expectations: string[];
 }

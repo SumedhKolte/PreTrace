@@ -6,7 +6,13 @@ import "./globals.css";
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
+/** Absolute base for Open Graph images: explicit site URL, else Vercel's production domain, else local. */
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: { default: "PrepTrace — AI Interview Prep", template: "%s · PrepTrace" },
   description: "Turn any job description into your interview advantage with researched, personalized preparation.",
   icons: {

@@ -126,6 +126,11 @@ export default function CompanyPage() {
         <Card>
           <CardHeader title="Hiring process" icon={<Route className="h-4 w-4" />} description={brief.hiring_process.found ? brief.hiring_process.summary : undefined} />
           <CardBody>
+            {brief.hiring_process.note && (
+              <p className="mb-4 flex gap-2 rounded-lg border border-[#fbe3b8] bg-warn-soft px-3 py-2 text-[12.5px] text-ink-2">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warn" /> {brief.hiring_process.note}
+              </p>
+            )}
             {brief.hiring_process.found ? (
               <ol className="relative space-y-4">
                 {brief.hiring_process.stages.map((s, i) => (

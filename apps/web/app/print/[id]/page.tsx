@@ -107,6 +107,7 @@ function Sheet({ kit, readiness }: { kit: KitWorkspace; readiness?: ReadinessRep
           </Section>
 
           <Section title="How they interview">
+            {kit.companyBrief.hiring_process.note && <p className="mb-1 text-[10.5px] italic text-warn">{kit.companyBrief.hiring_process.note}</p>}
             {kit.companyBrief.hiring_process.found ? (
               <ol className="space-y-1">
                 {kit.companyBrief.hiring_process.stages.map((s, i) => (

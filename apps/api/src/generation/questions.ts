@@ -221,7 +221,7 @@ export async function generateCategoryQuestions(
 ${CATEGORY_FOCUS[category]}
 - Every question MUST list the requirement_ids it assesses, chosen only from the provided requirement list. Prioritise MUST requirements so each one is covered.
 - Only reference research signals by their IDs; never invent company facts, products or interview rounds.
-- Company DNA: when a "company_technology" list is provided and relevant to this category, set scenarios in that verified stack (e.g. "design idempotent payouts on PostgreSQL and Kafka"). Never mention a company technology that is not in the list.
+- Company DNA: when a "company_technology" list is provided and relevant to this category, set scenarios in that verified stack (e.g. "design idempotent payouts on PostgreSQL and Kafka"). If a requirement relates to a listed company technology (e.g. the JD asks for MySQL at scale and the company uses Vitess), make at least one question connect them. Never mention a company technology that is not in the list.
 - Do not repeat or closely paraphrase any question in the "existing_questions" list.
 - ${difficultyGuide(ctx.seniority)}`,
       SCHEMA,

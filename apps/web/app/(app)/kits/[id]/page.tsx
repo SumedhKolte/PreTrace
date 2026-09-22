@@ -138,7 +138,7 @@ export default function KitOverviewPage() {
 
         {/* Interview process */}
         <Card className="lg:col-span-2">
-          <CardHeader title="Interview process" icon={<Route className="h-4 w-4" />} description={hp.found ? "From the company's own hiring page" : undefined} />
+          <CardHeader title="Interview process" icon={<Route className="h-4 w-4" />} description={hp.found ? (hp.note ?? "From the company's own hiring page") : undefined} />
           <CardBody>
             {hp.found ? (
               <ol className="space-y-3">
