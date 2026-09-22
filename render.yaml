@@ -4,20 +4,21 @@ services:
     name: preptrace-api
     runtime: node
     plan: free
-    buildCommand: npm ci && npm run build -w @preptrace/api
+    # --include=dev: NODE_ENV=production would otherwise skip devDependencies (tsup, typescript) and break the build.
+    buildCommand: npm ci --include=dev && npm run build -w @preptrace/api
     startCommand: npm run start -w @preptrace/api
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: TRUST_PROXY
-        value: "true"
+        value: "2" # browser → Vercel rewrite → Render load balancer → API
       - key: MONGODB_URI
         sync: false # MongoDB Atlas free-tier connection string
       - key: SESSION_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        sync: false # e.g. https://preptrace.vercel.app
+        sync: false # e.g. https://preptrace.vercel.app (comma-separate extra origins)
       - key: BACKEND_URL
         sync: false # this service's public URL
       - key: LLM_PROVIDER
@@ -26,3 +27,7 @@ services:
         sync: false
       - key: LLM_MAX_RPM
         value: "10"
+      - key: SEARCH_PROVIDER
+        value: auto
+      - key: TAVILY_API_KEY
+        sync: false # optional; keyless DuckDuckGo fallback otherwise
