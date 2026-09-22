@@ -1,0 +1,34 @@
+export const ERROR_CODES = [
+  "INVALID_INPUT",
+  "INVALID_URL",
+  "URL_NOT_ALLOWED",
+  "COMPANY_UNREACHABLE",
+  "COMPANY_404",
+  "ROBOTS_BLOCKED",
+  "CONTENT_TOO_LARGE",
+  "UNSUPPORTED_CONTENT",
+  "FETCH_TIMEOUT",
+  "LLM_NOT_CONFIGURED",
+  "LLM_RATE_LIMITED",
+  "LLM_INVALID_RESPONSE",
+  "LLM_UNAVAILABLE",
+  "KIT_VALIDATION_FAILED",
+  "GENERATION_FAILED",
+  "GENERATION_TIMEOUT",
+  "JOB_IN_PROGRESS",
+  "DUPLICATE_KIT",
+  "VERSION_CONFLICT",
+  "AUTH_REQUIRED",
+  "INVALID_CREDENTIALS",
+  "EMAIL_TAKEN",
+  "FORBIDDEN",
+  "NOT_FOUND",
+  "RATE_LIMITED",
+  "INTERNAL_ERROR",
+] as const;
+
+export type ErrorCode = (typeof ERROR_CODES)[number];
+
+export interface ApiErrorBody {
+  error: { code: ErrorCode; message: string; details?: unknown };
+}
